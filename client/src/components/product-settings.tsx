@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,7 +28,7 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
   const form = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
-      language: defaultSettings?.language || "en",
+      language: defaultSettings?.language || "uk",
       category: defaultSettings?.category || "",
       certifications: defaultSettings?.certifications || [{ value: "" }],
     },
@@ -55,18 +55,38 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
   };
 
   const languages = [
-    { code: "cs", name: "Čeština" },
-    { code: "da", name: "Dansk" },
-    { code: "nl", name: "Nederlands" },
-    { code: "en", name: "English" },
-    { code: "fr", name: "Français" },
+    { code: "uk", name: "English (UK)" },
     { code: "de", name: "Deutsch" },
-    { code: "hu", name: "Magyar" },
+    { code: "fr", name: "Français" },
     { code: "it", name: "Italiano" },
-    { code: "pl", name: "Polski" },
-    { code: "pt", name: "Português" },
     { code: "es", name: "Español" },
+    { code: "pt", name: "Português" },
+    { code: "nl", name: "Nederlands" },
+    { code: "da", name: "Dansk" },
     { code: "sv", name: "Svenska" },
+    { code: "no", name: "Norsk" },
+    { code: "fi", name: "Suomi" },
+    { code: "pl", name: "Polski" },
+    { code: "cs", name: "Čeština" },
+    { code: "sk", name: "Slovenčina" },
+    { code: "hu", name: "Magyar" },
+    { code: "ro", name: "Română" },
+    { code: "bg", name: "Български" },
+    { code: "hr", name: "Hrvatski" },
+    { code: "sl", name: "Slovenščina" },
+    { code: "et", name: "Eesti" },
+    { code: "lv", name: "Latviešu" },
+    { code: "lt", name: "Lietuvių" },
+    { code: "el", name: "Ελληνικά" },
+    { code: "mt", name: "Malti" },
+    { code: "ga", name: "Gaeilge" },
+    { code: "fr-be", name: "Français (Belgique)" },
+    { code: "nl-be", name: "Nederlands (België)" },
+    { code: "de-at", name: "Deutsch (Österreich)" },
+    { code: "de-ch", name: "Deutsch (Schweiz)" },
+    { code: "fr-ch", name: "Français (Suisse)" },
+    { code: "it-ch", name: "Italiano (Svizzera)" },
+    { code: "lb", name: "Lëtzebuergesch" },
   ];
 
 
@@ -114,13 +134,10 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                   <FormLabel>Product Category</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="e.g., bra, panties, thong, bodysuit, corset..." 
+                      placeholder="e.g., bra, panties, thong..." 
                       {...field} 
                     />
                   </FormControl>
-                  <FormDescription className="text-xs">
-                    Be specific: Use exact product type names for best results
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -131,9 +148,6 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
 
           <div className="space-y-2">
             <FormLabel>Certifications</FormLabel>
-            <FormDescription className="text-xs text-muted-foreground">
-              Add quality certifications like OEKO-TEX®, STANDARD 100, etc. (Optional)
-            </FormDescription>
             {fields.map((field, index) => (
               <div key={field.id} className="flex gap-2">
                 <FormField
@@ -143,7 +157,7 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                     <FormItem className="flex-1">
                       <FormControl>
                         <Input
-                          placeholder="e.g., OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI"
+                          placeholder="e.g., OEKO-TEX® STANDARD 100"
                           {...field}
                         />
                       </FormControl>

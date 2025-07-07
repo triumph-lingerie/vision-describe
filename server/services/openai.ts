@@ -5,7 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
 });
 
-export async function analyzeImages(images: Array<{base64: string, mimeType: string}>, language: string = "en", category: string = "product", certifications: string = ""): Promise<string> {
+export async function analyzeImages(images: Array<{base64: string, mimeType: string}>, language: string = "uk", category: string = "product", certifications: string = ""): Promise<string> {
   try {
     const imageContents = images.map(img => ({
       type: "image_url" as const,
@@ -126,7 +126,7 @@ Write with the confidence and refinement of premium fashion and lingerie brands.
   }
 }
 
-export async function analyzeImage(base64Image: string, mimeType: string, language: string = "en", category: string = "product", certifications: string = ""): Promise<string> {
+export async function analyzeImage(base64Image: string, mimeType: string, language: string = "uk", category: string = "product", certifications: string = ""): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

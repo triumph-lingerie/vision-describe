@@ -28,7 +28,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const files = req.files as Express.Multer.File[];
       const { 
-        language = "en", 
+        language = "uk", 
         category = "product",
         certifications = ""
       } = req.body;
