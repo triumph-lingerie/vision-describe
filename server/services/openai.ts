@@ -61,7 +61,10 @@ CONTENT REQUIREMENTS:
    - Dutch: "Deze ${category}" (singular/plural)
    - Portuguese: "Este/Esta ${category}" (singular, check gender) or "Estes/Estas ${category}" (plural, check gender)
    
-   EXAMPLES: "reggiseno riduttore" = singular → "Questo reggiseno riduttore"
+   ITALIAN GENDER EXAMPLES: 
+   - "reggiseno riduttore" = singular, MASCULINE → "Questo reggiseno riduttore" (NOT "Questa")
+   - "mutandina" = singular, FEMININE → "Questa mutandina"
+   - "canottiera" = singular, FEMININE → "Questa canottiera"
 2. Use ALL images to create descriptions that answer:
    - What is this product and what problems does it solve?
    - What makes it different from other products?
@@ -160,7 +163,10 @@ CONTENT REQUIREMENTS:
    - Dutch: "Deze ${category}" (singular/plural)
    - Portuguese: "Este/Esta ${category}" (singular, check gender) or "Estes/Estas ${category}" (plural, check gender)
    
-   EXAMPLES: "reggiseno riduttore" = singular → "Questo reggiseno riduttore"
+   ITALIAN GENDER EXAMPLES: 
+   - "reggiseno riduttore" = singular, MASCULINE → "Questo reggiseno riduttore" (NOT "Questa")
+   - "mutandina" = singular, FEMININE → "Questa mutandina"
+   - "canottiera" = singular, FEMININE → "Questa canottiera"
 2. Analyze the image to create descriptions that answer:
    - What is this product and what problems does it solve?
    - What makes it different from other products?
