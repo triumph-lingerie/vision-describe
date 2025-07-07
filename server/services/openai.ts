@@ -48,9 +48,10 @@ Current language code: ${language}
 
 CONTENT REQUIREMENTS:
 1. Start with the appropriate demonstrative + ${category} in the target language with PERFECT GRAMMAR:
-   CRITICAL RULE: Determine if "${category}" describes ONE item (singular) or MULTIPLE items (plural):
-   - If category describes ONE item (e.g., "reggiseno riduttore", "non-wired bra") → USE SINGULAR
-   - If category describes MULTIPLE items (e.g., "reggiseni", "bras", "mutandine") → USE PLURAL
+   CRITICAL RULE: Use the EXACT grammar that matches the ${category} text provided:
+   - If category is written in SINGULAR form (e.g., "reggiseno imbottito", "non-wired bra") → ALWAYS USE SINGULAR articles
+   - If category is written in PLURAL form (e.g., "reggiseni", "bras", "mutandine") → USE PLURAL articles  
+   - DO NOT change singular to plural based on image content - match the category text exactly!
    
    GRAMMAR BY LANGUAGE:
    - English: "This ${category}" (singular) or "These ${category}" (plural)
@@ -61,10 +62,10 @@ CONTENT REQUIREMENTS:
    - Dutch: "Deze ${category}" (singular/plural)
    - Portuguese: "Este/Esta ${category}" (singular, check gender) or "Estes/Estas ${category}" (plural, check gender)
    
-   ITALIAN GENDER EXAMPLES: 
-   - "reggiseno riduttore" = singular, MASCULINE → "Questo reggiseno riduttore" (NOT "Questa")
-   - "mutandina" = singular, FEMININE → "Questa mutandina"
-   - "canottiera" = singular, FEMININE → "Questa canottiera"
+   ITALIAN EXAMPLES: 
+   - "reggiseno imbottito" (singular) → "Questo reggiseno imbottito" (NOT "Questi reggiseni")
+   - "mutandina" (singular) → "Questa mutandina"
+   - "reggiseni" (plural) → "Questi reggiseni"
 2. Use ALL images to create descriptions that answer:
    - What is this product and what problems does it solve?
    - What makes it different from other products?
@@ -150,9 +151,10 @@ Current language code: ${language}
 
 CONTENT REQUIREMENTS:
 1. Start with the appropriate demonstrative + ${category} in the target language with PERFECT GRAMMAR:
-   CRITICAL RULE: Determine if "${category}" describes ONE item (singular) or MULTIPLE items (plural):
-   - If category describes ONE item (e.g., "reggiseno riduttore", "non-wired bra") → USE SINGULAR
-   - If category describes MULTIPLE items (e.g., "reggiseni", "bras", "mutandine") → USE PLURAL
+   CRITICAL RULE: Use the EXACT grammar that matches the ${category} text provided:
+   - If category is written in SINGULAR form (e.g., "reggiseno imbottito", "non-wired bra") → ALWAYS USE SINGULAR articles
+   - If category is written in PLURAL form (e.g., "reggiseni", "bras", "mutandine") → USE PLURAL articles  
+   - DO NOT change singular to plural based on image content - match the category text exactly!
    
    GRAMMAR BY LANGUAGE:
    - English: "This ${category}" (singular) or "These ${category}" (plural)
@@ -163,10 +165,10 @@ CONTENT REQUIREMENTS:
    - Dutch: "Deze ${category}" (singular/plural)
    - Portuguese: "Este/Esta ${category}" (singular, check gender) or "Estes/Estas ${category}" (plural, check gender)
    
-   ITALIAN GENDER EXAMPLES: 
-   - "reggiseno riduttore" = singular, MASCULINE → "Questo reggiseno riduttore" (NOT "Questa")
-   - "mutandina" = singular, FEMININE → "Questa mutandina"
-   - "canottiera" = singular, FEMININE → "Questa canottiera"
+   ITALIAN EXAMPLES: 
+   - "reggiseno imbottito" (singular) → "Questo reggiseno imbottito" (NOT "Questi reggiseni")
+   - "mutandina" (singular) → "Questa mutandina"
+   - "reggiseni" (plural) → "Questi reggiseni"
 2. Analyze the image to create descriptions that answer:
    - What is this product and what problems does it solve?
    - What makes it different from other products?
