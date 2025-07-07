@@ -16,7 +16,7 @@ interface ImageUploadProps {
 
 export function ImageUpload({ 
   onUploadComplete, 
-  language = "uk", 
+  language = "en", 
   category = "product",
   certifications = []
 }: ImageUploadProps) {
@@ -192,7 +192,10 @@ export function ImageUpload({
                   PNG, JPG, JPEG, WEBP up to 10MB each • Up to 10 images
                 </p>
                 <p className="text-xs text-blue-600 dark:text-blue-400">
-                  💡 Upload multiple images for better product analysis
+                  💡 Upload multiple angles for comprehensive descriptions
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Best results: High-resolution images with good lighting
                 </p>
               </div>
               {(!category || category.trim() === "") && (

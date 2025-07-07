@@ -55,6 +55,19 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  /* Custom placeholder styling - lighter gray */
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(240, 3.8%, 70%) !important;
+    opacity: 1;
+  }
+  
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: hsl(240, 5%, 55%) !important;
+    opacity: 1;
+  }
 }
 
 @layer utilities {
