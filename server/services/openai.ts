@@ -88,7 +88,7 @@ QUALITY REQUIREMENTS:
 - Human-like writing with natural flow
 - Premium brand positioning
 
-Write with the confidence and refinement of established fashion brands.`
+Write with the confidence and refinement of premium fashion and lingerie brands.`
             },
             ...imageContents
           ],
@@ -179,7 +179,7 @@ QUALITY REQUIREMENTS:
 - Human-like writing with natural flow
 - Premium brand positioning
 
-Write with the confidence and refinement of established fashion brands.`
+Write with the confidence and refinement of premium fashion and lingerie brands.`
             },
             {
               type: "image_url",
