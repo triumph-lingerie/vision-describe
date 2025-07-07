@@ -39,15 +39,18 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
 
 MANDATORY: You MUST look at and analyze the ${images.length} uploaded images. These are real product photos that require detailed visual analysis.
 
-PRODUCT IDENTIFICATION: Examine the ${images.length} images and identify the exact product type. Look at:
-- The specific style and design elements
-- Construction details and features
-- Any visible materials or textures
-- The overall silhouette and shape
+CRITICAL REQUIREMENT: You MUST base your description ONLY on what you actually see in the images. Do NOT add generic features or assume anything not visible.
 
-If the images show a different product than "${category}", use the actual product type you see. Be specific about what you observe.
+VISUAL ANALYSIS CHECKLIST - Look at each image and identify:
+- Exact product type and style (bra, underwear, swimwear, etc.)
+- Specific construction details visible (seams, bands, cups, straps)
+- Materials and textures you can see (lace, mesh, cotton, satin, etc.)
+- Hardware and closures visible (hooks, adjusters, wires, etc.)
+- Design elements and patterns actually present
+- Colors and color combinations visible
+- Any logos, labels, or certifications shown
 
-Create a detailed product description based on your visual analysis of the images.
+ACCURACY RULE: Only describe features you can actually see in the images. If you cannot see specific details, do not mention them.
 
 LANGUAGE: Write in the appropriate language based on the code:
 - uk: English (United Kingdom)
@@ -118,6 +121,12 @@ STRUCTURE (MANDATORY):
 4. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
 5. NO OTHER TEXT after the bullet points except certifications
 
+EXAMPLE OF ACCURATE ANALYSIS:
+✓ GOOD: "I can see a black wireless bra with wide shoulder straps and a front closure"
+✗ BAD: "I can see a bra" (too generic)
+✓ GOOD: "Featuring the visible wide under-band and front hook closure"  
+✗ BAD: "Featuring advanced support technology" (not visible)
+
 QUALITY REQUIREMENTS:
 - Unique, informative content (150-200 words)
 - Professional e-commerce standard
@@ -171,16 +180,20 @@ export async function analyzeImage(base64Image: string, mimeType: string, langua
               type: "text",
               text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
 
-MANDATORY VISUAL ANALYSIS: You MUST carefully examine this product image and identify what you see. Look at:
-- The specific product type and style
-- Construction details and design elements  
-- Visible materials, textures, and finishes
-- Unique features and selling points
-- Overall silhouette and fit
+MANDATORY VISUAL ANALYSIS: You MUST carefully examine this product image and identify what you see. 
 
-If the image shows a different product than "${category}", use the actual product type you observe. Be specific about what you see in the image.
+CRITICAL REQUIREMENT: You MUST base your description ONLY on what you actually see in the image. Do NOT add generic features or assume anything not visible.
 
-Create a detailed product description based on your visual analysis.
+VISUAL ANALYSIS CHECKLIST - Look at the image and identify:
+- Exact product type and style (bra, underwear, swimwear, etc.)
+- Specific construction details visible (seams, bands, cups, straps)
+- Materials and textures you can see (lace, mesh, cotton, satin, etc.)
+- Hardware and closures visible (hooks, adjusters, wires, etc.)
+- Design elements and patterns actually present
+- Colors and color combinations visible
+- Any logos, labels, or certifications shown
+
+ACCURACY RULE: Only describe features you can actually see in the image. If you cannot see specific details, do not mention them.
 
 LANGUAGE: Write in the appropriate language based on the code:
 - uk: English (United Kingdom)
@@ -249,6 +262,12 @@ STRUCTURE (MANDATORY):
 3. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
 4. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
 5. NO OTHER TEXT after the bullet points except certifications
+
+EXAMPLE OF ACCURATE ANALYSIS:
+✓ GOOD: "I can see a black wireless bra with wide shoulder straps and a front closure"
+✗ BAD: "I can see a bra" (too generic)
+✓ GOOD: "Featuring the visible wide under-band and front hook closure"  
+✗ BAD: "Featuring advanced support technology" (not visible)
 
 QUALITY REQUIREMENTS:
 - Unique, informative content (150-200 words)
