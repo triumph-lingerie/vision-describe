@@ -3,8 +3,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings2, Plus, Trash2 } from "lucide-react";
@@ -13,9 +27,13 @@ import { useState, useEffect } from "react";
 const settingsSchema = z.object({
   language: z.string().min(1, "Language is required"),
   category: z.string().min(1, "Product category is required"),
-  certifications: z.array(z.object({
-    value: z.string().optional()
-  })).default([{ value: "" }]),
+  certifications: z
+    .array(
+      z.object({
+        value: z.string().optional(),
+      }),
+    )
+    .default([{ value: "" }]),
 });
 
 type SettingsForm = z.infer<typeof settingsSchema>;
@@ -25,8 +43,13 @@ interface ProductSettingsProps {
   defaultSettings?: SettingsForm;
 }
 
-export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSettingsProps) {
-  const [selectedLanguage, setSelectedLanguage] = useState(defaultSettings?.language || "en");
+export function ProductSettings({
+  onSettingsChange,
+  defaultSettings,
+}: ProductSettingsProps) {
+  const [selectedLanguage, setSelectedLanguage] = useState(
+    defaultSettings?.language || "en",
+  );
   const [isLanguageChanging, setIsLanguageChanging] = useState(false);
   const [flagAnimation, setFlagAnimation] = useState("");
 
@@ -41,21 +64,23 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "certifications"
+    name: "certifications",
   });
 
   const onSubmit = (values: SettingsForm) => {
     // Filter out empty certifications and join with comma
     const filteredCertifications = values.certifications
-      .filter(cert => cert.value && cert.value.trim() !== "")
-      .map(cert => cert.value!)
+      .filter((cert) => cert.value && cert.value.trim() !== "")
+      .map((cert) => cert.value!)
       .join(", ");
-    
+
     const formattedValues = {
       ...values,
-      certifications: filteredCertifications ? [{ value: filteredCertifications }] : []
+      certifications: filteredCertifications
+        ? [{ value: filteredCertifications }]
+        : [],
     };
-    
+
     onSettingsChange(formattedValues);
   };
 
@@ -77,23 +102,21 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
   const handleLanguageChange = (newLanguage: string) => {
     setIsLanguageChanging(true);
     setFlagAnimation("flag-celebration");
-    
+
     setTimeout(() => {
       setSelectedLanguage(newLanguage);
       form.setValue("language", newLanguage);
       setIsLanguageChanging(false);
       setFlagAnimation("flag-bounce");
-      
+
       // Clear animation after completion
       setTimeout(() => setFlagAnimation(""), 400);
     }, 150);
   };
 
   const getSelectedLanguage = () => {
-    return languages.find(lang => lang.code === selectedLanguage);
+    return languages.find((lang) => lang.code === selectedLanguage);
   };
-
-
 
   return (
     <Card className="p-6 mb-6">
@@ -113,20 +136,22 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                   <FormLabel className="flex items-center gap-2">
                     Language
                     {getSelectedLanguage() && (
-                      <span 
+                      <span
                         className={`text-xl transition-all duration-200 ${flagAnimation} ${
-                          isLanguageChanging ? 'scale-125 rotate-12' : 'scale-100 rotate-0'
+                          isLanguageChanging
+                            ? "scale-125 rotate-12"
+                            : "scale-100 rotate-0"
                         }`}
                       >
                         {getSelectedLanguage()?.flag}
                       </span>
                     )}
                   </FormLabel>
-                  <Select 
+                  <Select
                     onValueChange={(value) => {
                       handleLanguageChange(value);
                       field.onChange(value);
-                    }} 
+                    }}
                     defaultValue={field.value}
                   >
                     <FormControl>
@@ -134,7 +159,9 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                         <SelectValue placeholder="Select language">
                           {getSelectedLanguage() && (
                             <div className="flex items-center gap-2">
-                              <span className="text-lg">{getSelectedLanguage()?.flag}</span>
+                              <span className="text-lg">
+                                {getSelectedLanguage()?.flag}
+                              </span>
                               <span>{getSelectedLanguage()?.name}</span>
                             </div>
                           )}
@@ -143,15 +170,13 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                     </FormControl>
                     <SelectContent>
                       {languages.map((lang) => (
-                        <SelectItem 
-                          key={lang.code} 
+                        <SelectItem
+                          key={lang.code}
                           value={lang.code}
                           className="transition-all duration-200 hover:bg-primary/10"
                         >
                           <div className="flex items-center gap-2">
-                            <span 
-                              className="text-lg flag-hover transition-transform duration-200 hover:scale-110"
-                            >
+                            <span className="text-lg flag-hover transition-transform duration-200 hover:scale-110">
                               {lang.flag}
                             </span>
                             <span>{lang.name}</span>
@@ -172,9 +197,9 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                 <FormItem>
                   <FormLabel>Product Category</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="e.g., bra, panties, thong, bodysuit, corset..." 
-                      {...field} 
+                    <Input
+                      placeholder="e.g., wired bra, hipster knicker..."
+                      {...field}
                     />
                   </FormControl>
                   <FormDescription className="text-xs">
@@ -186,12 +211,11 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
             />
           </div>
 
-
-
           <div className="space-y-2">
             <FormLabel>Certifications</FormLabel>
             <FormDescription className="text-xs text-muted-foreground">
-              Add quality certifications like OEKO-TEX®, STANDARD 100, etc. (Optional)
+              Add quality certifications like OEKO-TEX®, STANDARD 100, etc.
+              (Optional)
             </FormDescription>
             {fields.map((field, index) => (
               <div key={field.id} className="flex gap-2">
@@ -202,7 +226,7 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                     <FormItem className="flex-1">
                       <FormControl>
                         <Input
-                          placeholder="e.g., OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI"
+                          placeholder="e.g., OEKO-TEX® STANDARD 100"
                           {...field}
                         />
                       </FormControl>

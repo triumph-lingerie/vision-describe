@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ImageUpload } from "@/components/image-upload";
@@ -195,15 +196,15 @@ export default function Home() {
             </div>
             
             <div className="flex items-center space-x-6">
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
+              <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
                 Privacy Policy
-              </a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
+              </Link>
+              <Link href="/terms-of-service" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
                 Terms of Service
-              </a>
-              <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
+              </Link>
+              <Link href="/api-documentation" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
                 API Documentation
-              </a>
+              </Link>
             </div>
           </div>
         </div>
