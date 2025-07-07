@@ -22,7 +22,11 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
           content: [
             {
               type: "text",
-              text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. Analyze these ${images.length} ${category} images from different angles and create a premium product description that follows professional brand standards.
+              text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
+
+PRODUCT ANALYSIS: First analyze these ${images.length} images to confirm if they show "${category}" products. If the images show a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the images.
+
+Create a premium product description that follows professional brand standards.
 
 LANGUAGE: Write in the appropriate language based on the code:
 - uk: English (United Kingdom)
@@ -132,7 +136,11 @@ export async function analyzeImage(base64Image: string, mimeType: string, langua
           content: [
             {
               type: "text",
-              text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. Analyze this ${category} image and create a premium product description that follows professional brand standards.
+              text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
+
+PRODUCT ANALYSIS: First analyze this image to confirm if it shows a "${category}" product. If the image shows a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the image.
+
+Create a premium product description that follows professional brand standards.
 
 LANGUAGE: Write in the appropriate language based on the code:
 - uk: English (United Kingdom)
