@@ -196,12 +196,6 @@ export default function Home() {
             </div>
             
             <div className="flex items-center space-x-6">
-              <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
-                Privacy Policy
-              </Link>
-              <Link href="/terms-of-service" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
-                Terms of Service
-              </Link>
               <Link href="/api-documentation" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
                 API Documentation
               </Link>

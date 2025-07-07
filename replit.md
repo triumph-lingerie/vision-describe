@@ -143,12 +143,12 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Created smooth animations for language selection (celebration, bounce, wave effects)
   - Enhanced user experience with visual feedback for language changes
   - Implemented hover animations on dropdown flags with CSS keyframes
-- July 07, 2025: Added comprehensive legal and technical documentation pages
-  - Created Privacy Policy page with detailed data handling practices
-  - Implemented Terms of Service with usage guidelines and limitations
-  - Built complete API Documentation with endpoints, examples, and integration guides
-  - Added routing for /privacy-policy, /terms-of-service, /api-documentation
-  - Documented authentication, rate limits, error codes, and best practices
+- July 07, 2025: Added API documentation page with OpenAI integration guide
+  - Created simplified API Documentation page in English
+  - Removed Privacy Policy and Terms of Service pages per user request
+  - API documentation redirects to OpenAI's Vision API documentation
+  - Added application usage instructions and technical specifications
+  - Updated footer navigation to show only API Documentation link
 
 ## User Preferences
 
