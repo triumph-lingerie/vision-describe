@@ -37,11 +37,17 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
               type: "text",
               text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
 
-CRITICAL: You MUST analyze the ${images.length} uploaded images carefully. I have provided real product images that you need to examine and describe.
+MANDATORY: You MUST look at and analyze the ${images.length} uploaded images. These are real product photos that require detailed visual analysis.
 
-PRODUCT ANALYSIS: Look at these ${images.length} images to identify the actual product type. If the images show a different product than "${category}", use the correct product name from what you actually see in the images.
+PRODUCT IDENTIFICATION: Examine the ${images.length} images and identify the exact product type. Look at:
+- The specific style and design elements
+- Construction details and features
+- Any visible materials or textures
+- The overall silhouette and shape
 
-Create a premium product description based on what you observe in the images.
+If the images show a different product than "${category}", use the actual product type you see. Be specific about what you observe.
+
+Create a detailed product description based on your visual analysis of the images.
 
 LANGUAGE: Write in the appropriate language based on the code:
 - uk: English (United Kingdom)
@@ -106,10 +112,11 @@ CONTENT REQUIREMENTS:
    - No objectifying language
 
 STRUCTURE (MANDATORY):
-1. Start with grammatically correct demonstrative + ${category} (2-3 sentences introduction)
-2. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
-3. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
-4. NO OTHER TEXT after the bullet points except certifications
+1. FIRST: Brief description of what you see in the images (1 sentence starting with "I can see...")
+2. Start with grammatically correct demonstrative + actual product type (2-3 sentences introduction)
+3. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
+4. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
+5. NO OTHER TEXT after the bullet points except certifications
 
 QUALITY REQUIREMENTS:
 - Unique, informative content (150-200 words)
@@ -164,9 +171,16 @@ export async function analyzeImage(base64Image: string, mimeType: string, langua
               type: "text",
               text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
 
-PRODUCT ANALYSIS: First analyze this image to confirm if it shows a "${category}" product. If the image shows a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the image.
+MANDATORY VISUAL ANALYSIS: You MUST carefully examine this product image and identify what you see. Look at:
+- The specific product type and style
+- Construction details and design elements  
+- Visible materials, textures, and finishes
+- Unique features and selling points
+- Overall silhouette and fit
 
-Create a premium product description that follows professional brand standards.
+If the image shows a different product than "${category}", use the actual product type you observe. Be specific about what you see in the image.
+
+Create a detailed product description based on your visual analysis.
 
 LANGUAGE: Write in the appropriate language based on the code:
 - uk: English (United Kingdom)
@@ -230,10 +244,11 @@ CONTENT REQUIREMENTS:
    - No objectifying language
 
 STRUCTURE (MANDATORY):
-1. Start with grammatically correct demonstrative + ${category} (2-3 sentences introduction)
-2. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
-3. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
-4. NO OTHER TEXT after the bullet points except certifications
+1. FIRST: Brief description of what you see in the image (1 sentence starting with "I can see...")
+2. Start with grammatically correct demonstrative + actual product type (2-3 sentences introduction)
+3. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
+4. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
+5. NO OTHER TEXT after the bullet points except certifications
 
 QUALITY REQUIREMENTS:
 - Unique, informative content (150-200 words)
