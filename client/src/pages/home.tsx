@@ -127,15 +127,7 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">💡 Pro Tips</h4>
-            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-              <li>• Upload multiple angles for better analysis and comprehensive descriptions</li>
-              <li>• Use high-resolution images with good lighting for best results</li>
-              <li>• The AI will automatically correct the category if it detects a different product type</li>
-              <li>• Descriptions are optimized for SEO and e-commerce platforms</li>
-            </ul>
-          </div>
+
         </div>
 
         {/* Settings and Upload Section */}
