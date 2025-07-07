@@ -15,6 +15,8 @@ export const imageAnalyses = pgTable("image_analyses", {
   mimeType: text("mime_type").notNull(),
   fileSize: integer("file_size").notNull(),
   description: text("description").notNull(),
+  language: text("language").notNull().default("en"),
+  category: text("category").notNull().default("product"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

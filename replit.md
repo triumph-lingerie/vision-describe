@@ -104,6 +104,12 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Updated UI text and branding for product focus
   - Added HTML rendering support for formatted descriptions
   - Styled components for premium product description display
+- July 07, 2025: Added language and category support
+  - Created ProductSettings component for language and category selection
+  - Extended database schema with language and category fields
+  - Updated OpenAI prompts to use specified language and category for SEO optimization
+  - Added validation to require category before upload
+  - Enhanced UI with category/language badges in results display
 
 ## User Preferences
 

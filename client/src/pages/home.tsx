@@ -2,15 +2,21 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
+import { ProductSettings } from "@/components/product-settings";
 import { useTheme } from "@/components/theme-provider";
 import { Image, Sun, Moon, Github } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
+  const [settings, setSettings] = useState({ language: "en", category: "" });
   const { theme, setTheme } = useTheme();
 
   const handleUploadComplete = (newResults: any[]) => {
     setResults((prev) => [...newResults, ...prev]);
+  };
+
+  const handleSettingsChange = (newSettings: { language: string; category: string }) => {
+    setSettings(newSettings);
   };
 
   const toggleTheme = () => {
@@ -69,9 +75,18 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Upload Section */}
+        {/* Settings and Upload Section */}
         <div className="space-y-8">
-          <ImageUpload onUploadComplete={handleUploadComplete} />
+          <ProductSettings 
+            onSettingsChange={handleSettingsChange}
+            defaultSettings={settings}
+          />
+          
+          <ImageUpload 
+            onUploadComplete={handleUploadComplete}
+            language={settings.language}
+            category={settings.category}
+          />
 
           {/* Results Section */}
           {results.length > 0 && (

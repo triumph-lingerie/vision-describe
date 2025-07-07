@@ -27,6 +27,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/images/analyze", upload.array('images', 10), async (req: Request, res: Response) => {
     try {
       const files = req.files as Express.Multer.File[];
+      const { language = "en", category = "product" } = req.body;
       
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "No images uploaded" });
@@ -40,7 +41,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const base64Image = file.buffer.toString('base64');
           
           // Analyze image with OpenAI
-          const description = await analyzeImage(base64Image, file.mimetype);
+          const description = await analyzeImage(base64Image, file.mimetype, language, category);
           
           // Save analysis to storage
           const analysis = await storage.createImageAnalysis({
@@ -49,6 +50,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             mimeType: file.mimetype,
             fileSize: file.size,
             description: description,
+            language: language,
+            category: category,
           });
 
           results.push({
@@ -57,6 +60,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             description: analysis.description,
             createdAt: analysis.createdAt,
             fileSize: analysis.fileSize,
+            language: analysis.language,
+            category: analysis.category,
             imageData: `data:${file.mimetype};base64,${base64Image}`
           });
 

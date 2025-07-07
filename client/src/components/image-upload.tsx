@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
 
 interface ImageUploadProps {
   onUploadComplete: (results: any[]) => void;
+  language?: string;
+  category?: string;
 }
 
-export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
+export function ImageUpload({ onUploadComplete, language = "en", category = "product" }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
@@ -25,6 +27,10 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
       files.forEach((file) => {
         formData.append('images', file);
       });
+      
+      // Add language and category to form data
+      formData.append('language', language);
+      formData.append('category', category);
 
       // Simulate progress
       const progressInterval = setInterval(() => {
@@ -78,6 +84,16 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
   };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    // Check if category is specified
+    if (!category || category.trim() === "") {
+      toast({
+        title: "Category required",
+        description: "Please specify a product category before uploading images",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const validFiles = acceptedFiles.filter(file => {
       if (file.size > 10 * 1024 * 1024) {
         toast({
@@ -93,7 +109,7 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
     if (validFiles.length > 0) {
       uploadFiles(validFiles);
     }
-  }, [toast]);
+  }, [toast, category]);
 
   const {
     getRootProps,
@@ -121,7 +137,8 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
           isDragReject && "border-destructive bg-destructive/5",
           isDragActive && !isDragReject && "border-primary bg-primary/5",
           !isDragActive && "border-border hover:border-muted-foreground",
-          isUploading && "cursor-not-allowed opacity-50"
+          isUploading && "cursor-not-allowed opacity-50",
+          (!category || category.trim() === "") && "border-muted-foreground/50 opacity-75"
         )}
       >
         <input {...getInputProps()} />
@@ -158,6 +175,11 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
               <p className="text-sm text-muted-foreground">
                 Upload product photos (PNG, JPG, JPEG, WEBP up to 10MB)
               </p>
+              {(!category || category.trim() === "") && (
+                <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
+                  ⚠️ Please specify a product category above before uploading
+                </p>
+              )}
             </div>
             {!isDragActive && (
               <Button>

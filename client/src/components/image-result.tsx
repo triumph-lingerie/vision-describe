@@ -14,6 +14,8 @@ interface ImageResultProps {
     createdAt?: Date | string;
     fileSize?: number;
     imageData?: string;
+    language?: string;
+    category?: string;
     error?: string;
   };
   className?: string;
@@ -141,9 +143,21 @@ export function ImageResult({ result, className }: ImageResultProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-foreground">Product Description</h3>
-              <Badge variant="secondary" className="text-xs">
-                GPT-4V
-              </Badge>
+              <div className="flex items-center space-x-2">
+                {result.language && (
+                  <Badge variant="outline" className="text-xs">
+                    {result.language.toUpperCase()}
+                  </Badge>
+                )}
+                {result.category && (
+                  <Badge variant="outline" className="text-xs">
+                    {result.category}
+                  </Badge>
+                )}
+                <Badge variant="secondary" className="text-xs">
+                  GPT-4V
+                </Badge>
+              </div>
             </div>
 
             <div className="prose prose-sm max-w-none">

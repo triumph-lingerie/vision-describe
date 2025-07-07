@@ -44,6 +44,8 @@ export class MemStorage implements IStorage {
     const analysis: ImageAnalysis = { 
       ...insertAnalysis, 
       id, 
+      language: insertAnalysis.language || "en",
+      category: insertAnalysis.category || "product",
       createdAt: new Date() 
     };
     this.imageAnalyses.set(id, analysis);
