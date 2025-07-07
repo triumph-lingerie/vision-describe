@@ -11,11 +11,20 @@ import { Settings2, Plus, Trash2 } from "lucide-react";
 
 const settingsSchema = z.object({
   language: z.string().min(1, "Language is required"),
-  category: z.string().min(1, "Product category is required"),
+  category: z.string(),
   autoDetectCategory: z.boolean().default(false),
   certifications: z.array(z.object({
     value: z.string().optional()
   })).default([{ value: "" }]),
+}).refine((data) => {
+  // Category is required only when autoDetectCategory is false
+  if (!data.autoDetectCategory && !data.category.trim()) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Product category is required when auto-detect is disabled",
+  path: ["category"]
 });
 
 type SettingsForm = z.infer<typeof settingsSchema>;
@@ -136,7 +145,7 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                   <FormLabel>Product Category</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="e.g., bra, panties, thong..." 
+                      placeholder={form.watch("autoDetectCategory") ? "Auto-detect enabled" : "e.g., bra, panties, thong..."} 
                       {...field} 
                       disabled={form.watch("autoDetectCategory")}
                       className={form.watch("autoDetectCategory") ? "opacity-50" : ""}
