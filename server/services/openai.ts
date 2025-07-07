@@ -2,11 +2,13 @@ import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
+  apiKey: process.env.OPENAI_API_KEY
 });
 
 export async function analyzeImages(images: Array<{base64: string, mimeType: string}>, language: string = "en", category: string = "product", certifications: string = ""): Promise<string> {
   try {
+    console.log(`Analyzing ${images.length} images with language: ${language}, category: ${category}`);
+    
     const imageContents = images.map(img => ({
       type: "image_url" as const,
       image_url: {
@@ -14,6 +16,8 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
       }
     }));
 
+    console.log("Sending request to OpenAI with image contents...");
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -24,9 +28,11 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
               type: "text",
               text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
 
-PRODUCT ANALYSIS: First analyze these ${images.length} images to confirm if they show "${category}" products. If the images show a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the images.
+CRITICAL: You MUST analyze the ${images.length} uploaded images carefully. I have provided real product images that you need to examine and describe.
 
-Create a premium product description that follows professional brand standards.
+PRODUCT ANALYSIS: Look at these ${images.length} images to identify the actual product type. If the images show a different product than "${category}", use the correct product name from what you actually see in the images.
+
+Create a premium product description based on what you observe in the images.
 
 LANGUAGE: Write in the appropriate language based on the code:
 - uk: English (United Kingdom)
@@ -103,7 +109,9 @@ QUALITY REQUIREMENTS:
 - Human-like writing with natural flow
 - Premium brand positioning
 
-Write with the confidence and refinement of premium fashion and lingerie brands.`
+Write with the confidence and refinement of premium fashion and lingerie brands.
+
+IMPORTANT: You are receiving real product images. Examine them carefully and describe what you actually see. Do not provide generic responses.`
             },
             ...imageContents
           ],
@@ -113,6 +121,8 @@ Write with the confidence and refinement of premium fashion and lingerie brands.
     });
 
     let result = response.choices[0].message.content || "Unable to generate description for these images.";
+    
+    console.log("OpenAI response received:", result.substring(0, 100) + "...");
     
     // Append certifications if provided
     if (certifications && certifications.trim()) {
