@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, Copy, Download, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle, Copy, Download, Clock, AlertCircle, ChevronDown, ChevronRight, Code } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ImageResultProps {
@@ -23,6 +24,7 @@ interface ImageResultProps {
 
 export function ImageResult({ result, className }: ImageResultProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [isJsonOpen, setIsJsonOpen] = useState(false);
   const { toast } = useToast();
 
   const handleCopy = async () => {
@@ -166,6 +168,37 @@ export function ImageResult({ result, className }: ImageResultProps) {
                 dangerouslySetInnerHTML={{ __html: result.description || '' }}
               />
             </div>
+
+            {/* JSON Debug Section */}
+            <Collapsible open={isJsonOpen} onOpenChange={setIsJsonOpen}>
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full justify-start text-xs text-muted-foreground hover:text-foreground mt-3"
+                >
+                  <Code className="h-3 w-3 mr-2" />
+                  {isJsonOpen ? (
+                    <>
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      Hide API Response
+                    </>
+                  ) : (
+                    <>
+                      <ChevronRight className="h-3 w-3 mr-1" />
+                      Show API Response
+                    </>
+                  )}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-2 p-3 bg-muted rounded-md">
+                  <pre className="text-xs text-muted-foreground overflow-auto max-h-40">
+                    {JSON.stringify(result, null, 2)}
+                  </pre>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-border mt-4">

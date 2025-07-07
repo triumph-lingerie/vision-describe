@@ -40,7 +40,15 @@ LANGUAGE: Write in the appropriate language based on the code:
 Current language code: ${language}
 
 CONTENT REQUIREMENTS:
-1. Start with "These ${category}" or equivalent in the target language (for SEO purposes)
+1. Start with the appropriate demonstrative + ${category} in the target language (for SEO purposes):
+   - English: "These ${category}"
+   - German: "Diese ${category}" (or "Dieser" for masculine nouns)
+   - French: "Ces ${category}" (or "Ce/Cette" for singular)
+   - Italian: "Questi ${category}" (or "Questo/Questa" for singular depending on gender)
+   - Spanish: "Estos ${category}" (or "Este/Esta" for singular)
+   - Dutch: "Deze ${category}"
+   - Portuguese: "Estes ${category}" (or "Este/Esta" for singular)
+   - And so on for other languages - use proper grammar and gender agreement
 2. A compelling main description paragraph (2-3 sentences) highlighting key benefits, materials, and appeal
 3. A bulleted feature list with specific product attributes
 4. Use a tone that's elegant, sophisticated, and persuasive
