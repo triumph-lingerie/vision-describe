@@ -126,6 +126,12 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Integrated sophisticated tone of voice standards from premium fashion brands
   - Added restrictions against AI-generated phrases and objectifying language
   - Improved content structure requirements for professional e-commerce standards
+- July 07, 2025: Simplified interface by removing auto-detect category feature
+  - Removed auto-detect checkbox and related validation logic
+  - Category field is now always required for manual input
+  - AI still automatically corrects category if it detects a different product type from the image
+  - Maintains smart verification but requires explicit user category input
+  - Interface now has only Language, Product Category, and Certifications fields
 
 ## User Preferences
 

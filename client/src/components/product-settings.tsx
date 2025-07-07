@@ -11,20 +11,10 @@ import { Settings2, Plus, Trash2 } from "lucide-react";
 
 const settingsSchema = z.object({
   language: z.string().min(1, "Language is required"),
-  category: z.string(),
-  autoDetectCategory: z.boolean().default(false),
+  category: z.string().min(1, "Product category is required"),
   certifications: z.array(z.object({
     value: z.string().optional()
   })).default([{ value: "" }]),
-}).refine((data) => {
-  // Category is required only when autoDetectCategory is false
-  if (!data.autoDetectCategory && !data.category.trim()) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Product category is required when auto-detect is disabled",
-  path: ["category"]
 });
 
 type SettingsForm = z.infer<typeof settingsSchema>;
@@ -40,7 +30,6 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
     defaultValues: {
       language: defaultSettings?.language || "uk",
       category: defaultSettings?.category || "",
-      autoDetectCategory: defaultSettings?.autoDetectCategory || false,
       certifications: defaultSettings?.certifications || [{ value: "" }],
     },
   });
@@ -145,10 +134,8 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                   <FormLabel>Product Category</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder={form.watch("autoDetectCategory") ? "Auto-detect enabled" : "e.g., bra, panties, thong..."} 
+                      placeholder="e.g., bra, panties, thong..." 
                       {...field} 
-                      disabled={form.watch("autoDetectCategory")}
-                      className={form.watch("autoDetectCategory") ? "opacity-50" : ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -157,23 +144,7 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="autoDetectCategory"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="text-sm font-normal">
-                  Auto-detect product category from image
-                </FormLabel>
-              </FormItem>
-            )}
-          />
+
 
           <div className="space-y-2">
             <FormLabel>Certifications</FormLabel>

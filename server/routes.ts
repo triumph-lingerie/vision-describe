@@ -30,7 +30,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { 
         language = "uk", 
         category = "product",
-        autoDetectCategory = "false",
         certifications = ""
       } = req.body;
       
@@ -45,7 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const file = files[0];
         try {
           const base64Image = file.buffer.toString('base64');
-          const description = await analyzeImage(base64Image, file.mimetype, language, category, autoDetectCategory === "true", certifications);
+          const description = await analyzeImage(base64Image, file.mimetype, language, category, certifications);
           
           const analysis = await storage.createImageAnalysis({
             filename: `${Date.now()}-${file.originalname}`,
@@ -91,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             mimeType: file.mimetype
           }));
           
-          const description = await analyzeImages(images, language, category, autoDetectCategory === "true", certifications);
+          const description = await analyzeImages(images, language, category, certifications);
           
           // Create a combined filename for storage
           const combinedFilename = `${Date.now()}-combined-${files.length}-images`;

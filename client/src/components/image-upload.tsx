@@ -11,7 +11,6 @@ interface ImageUploadProps {
   onUploadComplete: (results: any[]) => void;
   language?: string;
   category?: string;
-  autoDetectCategory?: boolean;
   certifications?: Array<{ value?: string }>;
 }
 
@@ -19,7 +18,6 @@ export function ImageUpload({
   onUploadComplete, 
   language = "uk", 
   category = "product",
-  autoDetectCategory = false,
   certifications = []
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -39,7 +37,6 @@ export function ImageUpload({
       // Add language and category to form data
       formData.append('language', language);
       formData.append('category', category);
-      formData.append('autoDetectCategory', autoDetectCategory.toString());
       
       // Format certifications array to comma-separated string
       const formattedCertifications = certifications
@@ -102,8 +99,8 @@ export function ImageUpload({
   };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    // Check if category is specified (only when auto-detect is disabled)
-    if (!autoDetectCategory && (!category || category.trim() === "")) {
+    // Check if category is specified
+    if (!category || category.trim() === "") {
       toast({
         title: "Category required",
         description: "Please specify a product category before uploading images",
@@ -127,7 +124,7 @@ export function ImageUpload({
     if (validFiles.length > 0) {
       uploadFiles(validFiles);
     }
-  }, [toast, category, autoDetectCategory]);
+  }, [toast, category]);
 
   const {
     getRootProps,
@@ -156,7 +153,7 @@ export function ImageUpload({
           isDragActive && !isDragReject && "border-primary bg-primary/5",
           !isDragActive && "border-border hover:border-muted-foreground",
           isUploading && "cursor-not-allowed opacity-50",
-          !autoDetectCategory && (!category || category.trim() === "") && "border-muted-foreground/50 opacity-75"
+          (!category || category.trim() === "") && "border-muted-foreground/50 opacity-75"
         )}
       >
         <input {...getInputProps()} />
@@ -198,7 +195,7 @@ export function ImageUpload({
                   💡 Upload multiple images for better product analysis
                 </p>
               </div>
-              {!autoDetectCategory && (!category || category.trim() === "") && (
+              {(!category || category.trim() === "") && (
                 <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
                   ⚠️ Please specify a product category above before uploading
                 </p>

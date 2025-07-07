@@ -11,7 +11,6 @@ export default function Home() {
   const [settings, setSettings] = useState({ 
     language: "uk", 
     category: "",
-    autoDetectCategory: false,
     certifications: [{ value: "" }],
   });
   const { theme, setTheme } = useTheme();
@@ -90,7 +89,6 @@ export default function Home() {
             onUploadComplete={handleUploadComplete}
             language={settings.language}
             category={settings.category}
-            autoDetectCategory={settings.autoDetectCategory}
             certifications={settings.certifications}
           />
 
