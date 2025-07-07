@@ -231,6 +231,25 @@ export function ImageResult({ result, className }: ImageResultProps) {
               />
             </div>
 
+            {/* Extracted Features Section */}
+            {result.extractedFeatures && result.extractedFeatures.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-muted-foreground">AI-Extracted Features ({result.extractedFeatures.length})</h4>
+                <div className="flex flex-wrap gap-1">
+                  {result.extractedFeatures.map((feature, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs h-6 px-2">
+                      {feature}
+                    </Badge>
+                  ))}
+                </div>
+                {result.wordCount && (
+                  <p className="text-xs text-muted-foreground">
+                    Total words: {result.wordCount}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* JSON Debug Section */}
             <Collapsible open={isJsonOpen} onOpenChange={setIsJsonOpen}>
               <CollapsibleTrigger asChild>
