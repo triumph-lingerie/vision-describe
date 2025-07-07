@@ -48,14 +48,20 @@ Current language code: ${language}
 
 CONTENT REQUIREMENTS:
 1. Start with the appropriate demonstrative + ${category} in the target language with PERFECT GRAMMAR:
+   CRITICAL RULE: Determine if "${category}" describes ONE item (singular) or MULTIPLE items (plural):
+   - If category describes ONE item (e.g., "reggiseno riduttore", "non-wired bra") → USE SINGULAR
+   - If category describes MULTIPLE items (e.g., "reggiseni", "bras", "mutandine") → USE PLURAL
+   
+   GRAMMAR BY LANGUAGE:
    - English: "This ${category}" (singular) or "These ${category}" (plural)
-   - German: "Dieser/Diese/Dieses ${category}" (check gender/number agreement)
-   - French: "Ce/Cette ${category}" (singular) or "Ces ${category}" (plural)
-   - Italian: "Questo/Questa ${category}" (singular) or "Questi/Queste ${category}" (plural, check gender)
-   - Spanish: "Este/Esta ${category}" (singular) or "Estos/Estas ${category}" (plural, check gender)
+   - German: "Dieser/Diese/Dieses ${category}" (singular, check gender) or "Diese ${category}" (plural)
+   - French: "Ce/Cette ${category}" (singular, check gender) or "Ces ${category}" (plural)
+   - Italian: "Questo/Questa ${category}" (singular, check gender) or "Questi/Queste ${category}" (plural, check gender)
+   - Spanish: "Este/Esta ${category}" (singular, check gender) or "Estos/Estas ${category}" (plural, check gender)
    - Dutch: "Deze ${category}" (singular/plural)
-   - Portuguese: "Este/Esta ${category}" (singular) or "Estes/Estas ${category}" (plural, check gender)
-   - CRITICAL: Analyze if "${category}" is singular or plural, masculine or feminine, and apply correct grammar
+   - Portuguese: "Este/Esta ${category}" (singular, check gender) or "Estes/Estas ${category}" (plural, check gender)
+   
+   EXAMPLES: "reggiseno riduttore" = singular → "Questo reggiseno riduttore"
 2. Use ALL images to create descriptions that answer:
    - What is this product and what problems does it solve?
    - What makes it different from other products?
@@ -141,14 +147,20 @@ Current language code: ${language}
 
 CONTENT REQUIREMENTS:
 1. Start with the appropriate demonstrative + ${category} in the target language with PERFECT GRAMMAR:
+   CRITICAL RULE: Determine if "${category}" describes ONE item (singular) or MULTIPLE items (plural):
+   - If category describes ONE item (e.g., "reggiseno riduttore", "non-wired bra") → USE SINGULAR
+   - If category describes MULTIPLE items (e.g., "reggiseni", "bras", "mutandine") → USE PLURAL
+   
+   GRAMMAR BY LANGUAGE:
    - English: "This ${category}" (singular) or "These ${category}" (plural)
-   - German: "Dieser/Diese/Dieses ${category}" (check gender/number agreement)
-   - French: "Ce/Cette ${category}" (singular) or "Ces ${category}" (plural)
-   - Italian: "Questo/Questa ${category}" (singular) or "Questi/Queste ${category}" (plural, check gender)
-   - Spanish: "Este/Esta ${category}" (singular) or "Estos/Estas ${category}" (plural, check gender)
+   - German: "Dieser/Diese/Dieses ${category}" (singular, check gender) or "Diese ${category}" (plural)
+   - French: "Ce/Cette ${category}" (singular, check gender) or "Ces ${category}" (plural)
+   - Italian: "Questo/Questa ${category}" (singular, check gender) or "Questi/Queste ${category}" (plural, check gender)
+   - Spanish: "Este/Esta ${category}" (singular, check gender) or "Estos/Estas ${category}" (plural, check gender)
    - Dutch: "Deze ${category}" (singular/plural)
-   - Portuguese: "Este/Esta ${category}" (singular) or "Estes/Estas ${category}" (plural, check gender)
-   - CRITICAL: Analyze if "${category}" is singular or plural, masculine or feminine, and apply correct grammar
+   - Portuguese: "Este/Esta ${category}" (singular, check gender) or "Estes/Estas ${category}" (plural, check gender)
+   
+   EXAMPLES: "reggiseno riduttore" = singular → "Questo reggiseno riduttore"
 2. Analyze the image to create descriptions that answer:
    - What is this product and what problems does it solve?
    - What makes it different from other products?
