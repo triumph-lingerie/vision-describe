@@ -5,7 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
 });
 
-export async function analyzeImages(images: Array<{base64: string, mimeType: string}>, language: string = "uk", category: string = "product", autoDetectCategory: boolean = false, certifications: string = "", articleNumber: string = "", ean: string = "", composition: string = ""): Promise<string> {
+export async function analyzeImages(images: Array<{base64: string, mimeType: string}>, language: string = "uk", category: string = "product", certifications: string = ""): Promise<string> {
   try {
     const imageContents = images.map(img => ({
       type: "image_url" as const,
@@ -110,19 +110,9 @@ Write with the confidence and refinement of premium fashion and lingerie brands.
 
     let result = response.choices[0].message.content || "Unable to generate description for these images.";
     
-    // Append additional fields if provided
-    if (composition) {
-      result += `\n\n${composition}`;
-    }
-    
-    if (certifications) {
+    // Append certifications if provided
+    if (certifications && certifications.trim()) {
       result += `\n\n${certifications}`;
-    }
-    
-    if (articleNumber && ean) {
-      result += `\nArtikelnummer: ${articleNumber} (${ean})`;
-    } else if (articleNumber) {
-      result += `\nArtikelnummer: ${articleNumber}`;
     }
     
     return result;
@@ -132,7 +122,7 @@ Write with the confidence and refinement of premium fashion and lingerie brands.
   }
 }
 
-export async function analyzeImage(base64Image: string, mimeType: string, language: string = "uk", category: string = "product", autoDetectCategory: boolean = false, certifications: string = "", articleNumber: string = "", ean: string = "", composition: string = ""): Promise<string> {
+export async function analyzeImage(base64Image: string, mimeType: string, language: string = "uk", category: string = "product", certifications: string = ""): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -234,19 +224,9 @@ Write with the confidence and refinement of premium fashion and lingerie brands.
 
     let result = response.choices[0].message.content || "Unable to generate description for this image.";
     
-    // Append additional fields if provided
-    if (composition) {
-      result += `\n\n${composition}`;
-    }
-    
-    if (certifications) {
+    // Append certifications if provided
+    if (certifications && certifications.trim()) {
       result += `\n\n${certifications}`;
-    }
-    
-    if (articleNumber && ean) {
-      result += `\nArtikelnummer: ${articleNumber} (${ean})`;
-    } else if (articleNumber) {
-      result += `\nArtikelnummer: ${articleNumber}`;
     }
     
     return result;

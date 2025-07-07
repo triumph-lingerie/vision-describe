@@ -11,22 +11,14 @@ interface ImageUploadProps {
   onUploadComplete: (results: any[]) => void;
   language?: string;
   category?: string;
-  autoDetectCategory?: boolean;
-  certifications?: string;
-  articleNumber?: string;
-  ean?: string;
-  composition?: string;
+  certifications?: Array<{ value?: string }>;
 }
 
 export function ImageUpload({ 
   onUploadComplete, 
   language = "uk", 
   category = "product",
-  autoDetectCategory = false,
-  certifications = "",
-  articleNumber = "",
-  ean = "",
-  composition = ""
+  certifications = []
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -45,11 +37,13 @@ export function ImageUpload({
       // Add language and category to form data
       formData.append('language', language);
       formData.append('category', category);
-      formData.append('autoDetectCategory', autoDetectCategory.toString());
-      formData.append('certifications', certifications);
-      formData.append('articleNumber', articleNumber);
-      formData.append('ean', ean);
-      formData.append('composition', composition);
+      
+      // Format certifications array to comma-separated string
+      const formattedCertifications = certifications
+        .filter(cert => cert.value && cert.value.trim() !== "")
+        .map(cert => cert.value!)
+        .join(", ");
+      formData.append('certifications', formattedCertifications);
 
       // Simulate progress
       const progressInterval = setInterval(() => {

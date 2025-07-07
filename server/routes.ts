@@ -30,11 +30,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { 
         language = "uk", 
         category = "product",
-        autoDetectCategory = "false",
-        certifications = "",
-        articleNumber = "",
-        ean = "",
-        composition = ""
+        certifications = ""
       } = req.body;
       
       if (!files || files.length === 0) {
@@ -48,7 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const file = files[0];
         try {
           const base64Image = file.buffer.toString('base64');
-          const description = await analyzeImage(base64Image, file.mimetype, language, category, autoDetectCategory === "true", certifications, articleNumber, ean, composition);
+          const description = await analyzeImage(base64Image, file.mimetype, language, category, certifications);
           
           const analysis = await storage.createImageAnalysis({
             filename: `${Date.now()}-${file.originalname}`,
@@ -75,11 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fileSize: analysis.fileSize,
             language: analysis.language,
             category: analysis.category,
-            detectedCategory: autoDetectCategory === "true" ? "Auto-detected from image" : undefined,
             certifications: certifications || undefined,
-            articleNumber: articleNumber || undefined,
-            ean: ean || undefined,
-            composition: composition || undefined,
             imageData: `data:${file.mimetype};base64,${base64Image}`
           });
         } catch (error) {
@@ -98,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             mimeType: file.mimetype
           }));
           
-          const description = await analyzeImages(images, language, category, autoDetectCategory === "true", certifications, articleNumber, ean, composition);
+          const description = await analyzeImages(images, language, category, certifications);
           
           // Create a combined filename for storage
           const combinedFilename = `${Date.now()}-combined-${files.length}-images`;
@@ -132,11 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fileSize: analysis.fileSize,
             language: analysis.language,
             category: analysis.category,
-            detectedCategory: autoDetectCategory === "true" ? "Auto-detected from image" : undefined,
             certifications: certifications || undefined,
-            articleNumber: articleNumber || undefined,
-            ean: ean || undefined,
-            composition: composition || undefined,
             imageData: allImagesData[0], // Primary image for display
             allImages: allImagesData, // All images for carousel
             isMultiImage: true,

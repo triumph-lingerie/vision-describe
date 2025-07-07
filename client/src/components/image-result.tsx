@@ -22,11 +22,7 @@ interface ImageResultProps {
     imageCount?: number;
     language?: string;
     category?: string;
-    detectedCategory?: string;
     certifications?: string;
-    articleNumber?: string;
-    ean?: string;
-    composition?: string;
     error?: string;
   };
   className?: string;
