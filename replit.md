@@ -115,6 +115,13 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Added support for multi-lingual regions (Belgium, Switzerland) with specific language variants
   - Changed default language from English to UK English for consistency
   - Updated OpenAI prompts to handle all European languages with proper translations
+- July 07, 2025: Enhanced multi-image analysis capabilities
+  - Added support for analyzing multiple product images simultaneously for comprehensive descriptions
+  - Created new analyzeImages function that processes all images together vs individually
+  - Frontend now displays image carousel with navigation for multiple uploaded images
+  - Backend logic differentiates between single and multi-image uploads for optimal processing
+  - UI improvements to encourage multi-image uploads for better product analysis
+  - Added JSON debug view with collapsible section to verify API responses
 
 ## User Preferences
 

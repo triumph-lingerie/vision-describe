@@ -172,9 +172,14 @@ export function ImageUpload({ onUploadComplete, language = "uk", category = "pro
                   : "Drop your product images here or click to browse"
                 }
               </p>
-              <p className="text-sm text-muted-foreground">
-                Upload product photos (PNG, JPG, JPEG, WEBP up to 10MB)
-              </p>
+              <div className="text-center space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  PNG, JPG, JPEG, WEBP up to 10MB each • Up to 10 images
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  💡 Upload multiple images for better product analysis
+                </p>
+              </div>
               {(!category || category.trim() === "") && (
                 <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
                   ⚠️ Please specify a product category above before uploading

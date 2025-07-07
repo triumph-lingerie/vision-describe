@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, Copy, Download, Clock, AlertCircle, ChevronDown, ChevronRight, Code } from "lucide-react";
+import { CheckCircle, Copy, Download, Clock, AlertCircle, ChevronDown, ChevronRight, Code, Images } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ImageResultProps {
@@ -15,6 +15,9 @@ interface ImageResultProps {
     createdAt?: Date | string;
     fileSize?: number;
     imageData?: string;
+    allImages?: string[];
+    isMultiImage?: boolean;
+    imageCount?: number;
     language?: string;
     category?: string;
     error?: string;
@@ -25,6 +28,7 @@ interface ImageResultProps {
 export function ImageResult({ result, className }: ImageResultProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isJsonOpen, setIsJsonOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { toast } = useToast();
 
   const handleCopy = async () => {
@@ -110,7 +114,56 @@ export function ImageResult({ result, className }: ImageResultProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
         {/* Image Preview */}
         <div className="relative aspect-video lg:aspect-square bg-muted">
-          {result.imageData && (
+          {result.isMultiImage && result.allImages ? (
+            <>
+              <img
+                src={result.allImages[currentImageIndex]}
+                alt={`${result.originalName} - Image ${currentImageIndex + 1}`}
+                className={cn(
+                  "w-full h-full object-cover transition-opacity duration-300",
+                  imageLoaded ? "opacity-100" : "opacity-0"
+                )}
+                onLoad={() => setImageLoaded(true)}
+              />
+              {!imageLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              )}
+              
+              {/* Image navigation */}
+              {result.allImages.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setCurrentImageIndex(prev => prev > 0 ? prev - 1 : result.allImages!.length - 1)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm rounded-full p-2 hover:bg-background/90 transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4 rotate-180" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentImageIndex(prev => prev < result.allImages!.length - 1 ? prev + 1 : 0)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-background/80 backdrop-blur-sm rounded-full p-2 hover:bg-background/90 transition-colors"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                  
+                  {/* Image indicators */}
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1">
+                    {result.allImages.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={cn(
+                          "w-2 h-2 rounded-full transition-colors",
+                          index === currentImageIndex ? "bg-white" : "bg-white/50"
+                        )}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : result.imageData ? (
             <>
               <img
                 src={result.imageData}
@@ -127,11 +180,18 @@ export function ImageResult({ result, className }: ImageResultProps) {
                 </div>
               )}
             </>
-          )}
+          ) : null}
           
           <div className="absolute top-4 right-4 bg-background/80 backdrop-blur-sm rounded-full p-2">
             <CheckCircle className="h-4 w-4 text-green-600" />
           </div>
+          
+          {result.isMultiImage && result.imageCount && (
+            <div className="absolute top-4 left-4 bg-background/80 backdrop-blur-sm rounded-full px-3 py-1 flex items-center space-x-1">
+              <Images className="h-3 w-3" />
+              <span className="text-xs font-medium">{result.imageCount} images</span>
+            </div>
+          )}
           
           {result.fileSize && (
             <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm rounded-full px-3 py-1">

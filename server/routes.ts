@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertImageAnalysisSchema } from "@shared/schema";
-import { analyzeImage } from "./services/openai";
+import { analyzeImage, analyzeImages } from "./services/openai";
 import multer from "multer";
 import { z } from "zod";
 
@@ -35,15 +35,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const results = [];
 
-      for (const file of files) {
+      if (files.length === 1) {
+        // Single image analysis
+        const file = files[0];
         try {
-          // Convert buffer to base64
           const base64Image = file.buffer.toString('base64');
-          
-          // Analyze image with OpenAI
           const description = await analyzeImage(base64Image, file.mimetype, language, category);
           
-          // Save analysis to storage
           const analysis = await storage.createImageAnalysis({
             filename: `${Date.now()}-${file.originalname}`,
             originalName: file.originalname,
@@ -64,12 +62,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: analysis.category,
             imageData: `data:${file.mimetype};base64,${base64Image}`
           });
-
         } catch (error) {
           console.error(`Error processing file ${file.originalname}:`, error);
           results.push({
             originalName: file.originalname,
             error: error instanceof Error ? error.message : "Failed to process image"
+          });
+        }
+      } else {
+        // Multiple images analysis - analyze together for better description
+        const combinedOriginalName = `${files.map(f => f.originalname).join(', ')}`;
+        try {
+          const images = files.map(file => ({
+            base64: file.buffer.toString('base64'),
+            mimeType: file.mimetype
+          }));
+          
+          const description = await analyzeImages(images, language, category);
+          
+          // Create a combined filename for storage
+          const combinedFilename = `${Date.now()}-combined-${files.length}-images`;
+          const totalFileSize = files.reduce((sum, file) => sum + file.size, 0);
+          
+          const analysis = await storage.createImageAnalysis({
+            filename: combinedFilename,
+            originalName: combinedOriginalName,
+            mimeType: files[0].mimetype, // Use first file's mimetype
+            fileSize: totalFileSize,
+            description: description,
+            language: language,
+            category: category,
+          });
+
+          // Return all images with the combined description
+          const allImagesData = files.map(file => `data:${file.mimetype};base64,${file.buffer.toString('base64')}`);
+          
+          results.push({
+            id: analysis.id,
+            originalName: analysis.originalName,
+            description: analysis.description,
+            createdAt: analysis.createdAt,
+            fileSize: analysis.fileSize,
+            language: analysis.language,
+            category: analysis.category,
+            imageData: allImagesData[0], // Primary image for display
+            allImages: allImagesData, // All images for carousel
+            isMultiImage: true,
+            imageCount: files.length
+          });
+        } catch (error) {
+          console.error(`Error processing multiple images:`, error);
+          results.push({
+            originalName: combinedOriginalName,
+            error: error instanceof Error ? error.message : "Failed to process images"
           });
         }
       }
