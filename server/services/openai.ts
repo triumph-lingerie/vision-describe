@@ -115,11 +115,11 @@ CONTENT REQUIREMENTS:
    - No objectifying language
 
 STRUCTURE (MANDATORY):
-1. FIRST: Brief description of what you see in the images (1 sentence starting with "I can see...")
-2. Start with grammatically correct demonstrative + actual product type (2-3 sentences introduction)
-3. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
-4. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
-5. NO OTHER TEXT after the bullet points except certifications
+1. Start with grammatically correct demonstrative + actual product type (2-3 sentences introduction)
+2. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
+3. End ONLY with certifications if provided (no other text after bullet points)
+
+IMPORTANT: DO NOT include "I can see..." statements in your response. Use your visual analysis to create the description, but don't show the analysis process.
 
 EXAMPLE OF ACCURATE ANALYSIS:
 ✓ GOOD: "I can see a black wireless bra with wide shoulder straps and a front closure"
@@ -136,6 +136,8 @@ QUALITY REQUIREMENTS:
 
 Write with the confidence and refinement of premium fashion and lingerie brands.
 
+CERTIFICATIONS: If certifications are provided, include them at the end: ${certifications || ""}
+
 IMPORTANT: You are receiving real product images. Examine them carefully and describe what you actually see. Do not provide generic responses.`
             },
             ...imageContents
@@ -148,11 +150,6 @@ IMPORTANT: You are receiving real product images. Examine them carefully and des
     let result = response.choices[0].message.content || "Unable to generate description for these images.";
     
     console.log("OpenAI response received:", result.substring(0, 100) + "...");
-    
-    // Append certifications if provided
-    if (certifications && certifications.trim()) {
-      result += `\n\n${certifications}`;
-    }
     
     return result;
   } catch (error) {
@@ -257,11 +254,11 @@ CONTENT REQUIREMENTS:
    - No objectifying language
 
 STRUCTURE (MANDATORY):
-1. FIRST: Brief description of what you see in the image (1 sentence starting with "I can see...")
-2. Start with grammatically correct demonstrative + actual product type (2-3 sentences introduction)
-3. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
-4. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
-5. NO OTHER TEXT after the bullet points except certifications
+1. Start with grammatically correct demonstrative + actual product type (2-3 sentences introduction)
+2. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
+3. End ONLY with certifications if provided (no other text after bullet points)
+
+IMPORTANT: DO NOT include "I can see..." statements in your response. Use your visual analysis to create the description, but don't show the analysis process.
 
 EXAMPLE OF ACCURATE ANALYSIS:
 ✓ GOOD: "I can see a black wireless bra with wide shoulder straps and a front closure"
@@ -276,7 +273,9 @@ QUALITY REQUIREMENTS:
 - Human-like writing with natural flow
 - Premium brand positioning
 
-Write with the confidence and refinement of premium fashion and lingerie brands.`
+Write with the confidence and refinement of premium fashion and lingerie brands.
+
+CERTIFICATIONS: If certifications are provided, include them at the end: ${certifications || ""}`
             },
             {
               type: "image_url",
@@ -291,11 +290,6 @@ Write with the confidence and refinement of premium fashion and lingerie brands.
     });
 
     let result = response.choices[0].message.content || "Unable to generate description for this image.";
-    
-    // Append certifications if provided
-    if (certifications && certifications.trim()) {
-      result += `\n\n${certifications}`;
-    }
     
     return result;
   } catch (error) {
