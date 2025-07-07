@@ -5,8 +5,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
 import { ProductSettings } from "@/components/product-settings";
-import { useTheme } from "@/components/theme-provider";
-import { Image, Sun, Moon, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+
+import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
@@ -16,7 +16,6 @@ export default function Home() {
     certifications: [{ value: "" }],
   });
   const [isHowToOpen, setIsHowToOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
 
   const handleUploadComplete = (newResults: any[]) => {
     setResults((prev) => [...newResults, ...prev]);
@@ -26,37 +25,9 @@ export default function Home() {
     setSettings(newSettings);
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Image className="h-6 w-6 text-primary" />
-                <h1 className="text-xl font-semibold text-foreground">Product Description Generator</h1>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Sun className="h-4 w-4 dark:hidden" />
-                <Moon className="h-4 w-4 hidden dark:block" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
+
 
       {/* Main Content */}
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-8">
