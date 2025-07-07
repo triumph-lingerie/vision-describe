@@ -154,6 +154,10 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Removed flag animation logic and CSS keyframes
   - Simplified language selection to show only language names
   - Cleaned up component state management by removing flag-related variables
+- July 07, 2025: Cleaned up header navigation
+  - Removed GitHub button from header per user request
+  - Header now contains only the app title and theme toggle button
+  - Simplified header layout for cleaner appearance
 
 ## User Preferences
 

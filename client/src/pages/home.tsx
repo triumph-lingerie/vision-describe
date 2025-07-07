@@ -6,7 +6,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
 import { ProductSettings } from "@/components/product-settings";
 import { useTheme } from "@/components/theme-provider";
-import { Image, Sun, Moon, Github, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { Image, Sun, Moon, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
@@ -52,16 +52,6 @@ export default function Home() {
               >
                 <Sun className="h-4 w-4 dark:hidden" />
                 <Moon className="h-4 w-4 hidden dark:block" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-foreground"
-                onClick={() => window.open('https://github.com', '_blank')}
-              >
-                <Github className="h-4 w-4 mr-2" />
-                GitHub
               </Button>
             </div>
           </div>
