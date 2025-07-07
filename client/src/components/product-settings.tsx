@@ -89,19 +89,7 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
     { code: "lb", name: "Lëtzebuergesch" },
   ];
 
-  const categories = [
-    "Reggiseno",
-    "Slip",
-    "Culotte",
-    "Perizoma",
-    "Intimo sportivo",
-    "Pigiama",
-    "Camicia da notte",
-    "Vestaglia",
-    "Calze",
-    "Collant",
-    "Altro",
-  ];
+
 
   return (
     <Card className="p-6 mb-6">
@@ -144,20 +132,12 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Product Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g., Reggiseno, Slip, Perizoma..." 
+                      {...field} 
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
