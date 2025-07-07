@@ -27,7 +27,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/images/analyze", upload.array('images', 10), async (req: Request, res: Response) => {
     try {
       const files = req.files as Express.Multer.File[];
-      const { language = "en", category = "product" } = req.body;
+      const { language = "uk", category = "product" } = req.body;
       
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "No images uploaded" });

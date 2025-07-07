@@ -13,7 +13,7 @@ interface ImageUploadProps {
   category?: string;
 }
 
-export function ImageUpload({ onUploadComplete, language = "en", category = "product" }: ImageUploadProps) {
+export function ImageUpload({ onUploadComplete, language = "uk", category = "product" }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();

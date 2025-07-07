@@ -110,6 +110,11 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Updated OpenAI prompts to use specified language and category for SEO optimization
   - Added validation to require category before upload
   - Enhanced UI with category/language badges in results display
+- July 07, 2025: Updated language support to match European market requirements
+  - Expanded language list to include all European countries with proper locale codes
+  - Added support for multi-lingual regions (Belgium, Switzerland) with specific language variants
+  - Changed default language from English to UK English for consistency
+  - Updated OpenAI prompts to handle all European languages with proper translations
 
 ## User Preferences
 

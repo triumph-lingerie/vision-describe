@@ -24,7 +24,7 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
   const form = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
     defaultValues: defaultSettings || {
-      language: "en",
+      language: "uk",
       category: "",
     },
   });
@@ -57,11 +57,24 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="it">Italian</SelectItem>
-                      <SelectItem value="es">Spanish</SelectItem>
-                      <SelectItem value="fr">French</SelectItem>
-                      <SelectItem value="de">German</SelectItem>
+                      <SelectItem value="be-fr">Belgique-Français</SelectItem>
+                      <SelectItem value="be-nl">België-Nederlands</SelectItem>
+                      <SelectItem value="cz">Česká republika</SelectItem>
+                      <SelectItem value="dk">Danmark</SelectItem>
+                      <SelectItem value="de">Deutschland</SelectItem>
+                      <SelectItem value="es">España</SelectItem>
+                      <SelectItem value="fr">France</SelectItem>
+                      <SelectItem value="it">Italia</SelectItem>
+                      <SelectItem value="hu">Magyarország</SelectItem>
+                      <SelectItem value="nl">Nederland</SelectItem>
+                      <SelectItem value="at">Österreich</SelectItem>
+                      <SelectItem value="pl">Polska</SelectItem>
+                      <SelectItem value="pt">Portugal</SelectItem>
+                      <SelectItem value="ch-de">Schweiz-Deutsch</SelectItem>
+                      <SelectItem value="ch-fr">Suisse-Français</SelectItem>
+                      <SelectItem value="se">Sverige</SelectItem>
+                      <SelectItem value="ch-it">Svizzera-Italiano</SelectItem>
+                      <SelectItem value="uk">United Kingdom</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

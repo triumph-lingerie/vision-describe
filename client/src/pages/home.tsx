@@ -8,7 +8,7 @@ import { Image, Sun, Moon, Github } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
-  const [settings, setSettings] = useState({ language: "en", category: "" });
+  const [settings, setSettings] = useState({ language: "uk", category: "" });
   const { theme, setTheme } = useTheme();
 
   const handleUploadComplete = (newResults: any[]) => {
