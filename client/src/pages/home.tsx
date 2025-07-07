@@ -191,14 +191,26 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-2">
               <p className="text-sm text-muted-foreground">
-                Powered by <span className="font-medium">GPT-4 Vision</span>
+                Powered by <a 
+                  href="https://openai.com/index/gpt-4v-system-card/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="font-medium text-foreground hover:text-primary transition-colors duration-150"
+                >
+                  GPT-4 Vision
+                </a>
               </p>
             </div>
             
             <div className="flex items-center space-x-6">
-              <Link href="/api-documentation" className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150">
+              <a 
+                href="https://platform.openai.com/docs/guides/images-vision?api-mode=responses" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
+              >
                 API Documentation
-              </Link>
+              </a>
             </div>
           </div>
         </div>

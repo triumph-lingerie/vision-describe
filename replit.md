@@ -143,12 +143,12 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Created smooth animations for language selection (celebration, bounce, wave effects)
   - Enhanced user experience with visual feedback for language changes
   - Implemented hover animations on dropdown flags with CSS keyframes
-- July 07, 2025: Added API documentation page with OpenAI integration guide
-  - Created simplified API Documentation page in English
-  - Removed Privacy Policy and Terms of Service pages per user request
-  - API documentation redirects to OpenAI's Vision API documentation
-  - Added application usage instructions and technical specifications
-  - Updated footer navigation to show only API Documentation link
+- July 07, 2025: Simplified footer with direct external links
+  - Removed API documentation page entirely per user request
+  - Added direct link to OpenAI's Vision API documentation (https://platform.openai.com/docs/guides/images-vision?api-mode=responses)
+  - "GPT-4 Vision" text now links to OpenAI's GPT-4V system card (https://openai.com/index/gpt-4v-system-card/)
+  - Footer now contains only external links with proper target="_blank" attributes
+  - Cleaned up routing to remove unused documentation pages
 
 ## User Preferences
 
