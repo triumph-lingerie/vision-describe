@@ -92,9 +92,6 @@ export default function Home() {
             category={settings.category}
             autoDetectCategory={settings.autoDetectCategory}
             certifications={settings.certifications}
-            articleNumber={settings.articleNumber}
-            ean={settings.ean}
-            composition={settings.composition}
           />
 
           {/* Results Section */}

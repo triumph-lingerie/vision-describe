@@ -102,8 +102,8 @@ export function ImageUpload({
   };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    // Check if category is specified
-    if (!category || category.trim() === "") {
+    // Check if category is specified (only when auto-detect is disabled)
+    if (!autoDetectCategory && (!category || category.trim() === "")) {
       toast({
         title: "Category required",
         description: "Please specify a product category before uploading images",
@@ -127,7 +127,7 @@ export function ImageUpload({
     if (validFiles.length > 0) {
       uploadFiles(validFiles);
     }
-  }, [toast, category]);
+  }, [toast, category, autoDetectCategory]);
 
   const {
     getRootProps,
@@ -156,7 +156,7 @@ export function ImageUpload({
           isDragActive && !isDragReject && "border-primary bg-primary/5",
           !isDragActive && "border-border hover:border-muted-foreground",
           isUploading && "cursor-not-allowed opacity-50",
-          (!category || category.trim() === "") && "border-muted-foreground/50 opacity-75"
+          !autoDetectCategory && (!category || category.trim() === "") && "border-muted-foreground/50 opacity-75"
         )}
       >
         <input {...getInputProps()} />
@@ -198,7 +198,7 @@ export function ImageUpload({
                   💡 Upload multiple images for better product analysis
                 </p>
               </div>
-              {(!category || category.trim() === "") && (
+              {!autoDetectCategory && (!category || category.trim() === "") && (
                 <p className="text-xs text-orange-600 dark:text-orange-400 mt-2">
                   ⚠️ Please specify a product category above before uploading
                 </p>
