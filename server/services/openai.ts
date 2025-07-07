@@ -25,7 +25,9 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
               text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
 
 ${autoDetectCategory ? 
-  `PRODUCT ANALYSIS: Analyze these ${images.length} images and automatically detect the product type. Use the detected product type in your description regardless of any specified category.` : 
+  `PRODUCT ANALYSIS: Analyze these ${images.length} images and automatically identify the specific product type (e.g., bra, panties, thong, bodysuit, corset, etc.). You MUST determine the product type from the images - do not ask for clarification. Use the detected product type throughout your description.
+
+IMPORTANT: You are required to identify the product type from the image(s). Common lingerie/fashion items include: bra, panties, thong, bodysuit, corset, bustier, camisole, slip, nightgown, etc. Look at the garment's shape, style, and function to determine the correct category. DO NOT ask for clarification - make your best determination based on visual analysis.` : 
   `PRODUCT ANALYSIS: First analyze these ${images.length} images to confirm if they show "${category}" products. If the images show a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the images.`}
 
 Create a premium product description that follows professional brand standards.
@@ -141,7 +143,9 @@ export async function analyzeImage(base64Image: string, mimeType: string, langua
               text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
 
 ${autoDetectCategory ? 
-  `PRODUCT ANALYSIS: Analyze this image and automatically detect the product type. Use the detected product type in your description regardless of any specified category.` : 
+  `PRODUCT ANALYSIS: Analyze this image and automatically identify the specific product type (e.g., bra, panties, thong, bodysuit, corset, etc.). You MUST determine the product type from the image - do not ask for clarification. Use the detected product type throughout your description.
+
+IMPORTANT: You are required to identify the product type from the image(s). Common lingerie/fashion items include: bra, panties, thong, bodysuit, corset, bustier, camisole, slip, nightgown, etc. Look at the garment's shape, style, and function to determine the correct category. DO NOT ask for clarification - make your best determination based on visual analysis.` : 
   `PRODUCT ANALYSIS: First analyze this image to confirm if it shows a "${category}" product. If the image shows a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the image.`}
 
 Create a premium product description that follows professional brand standards.
