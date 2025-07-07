@@ -9,7 +9,7 @@ import { Image, Sun, Moon, Github } from "lucide-react";
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
   const [settings, setSettings] = useState({ 
-    language: "uk", 
+    language: "en", 
     category: "",
     certifications: [{ value: "" }],
   });

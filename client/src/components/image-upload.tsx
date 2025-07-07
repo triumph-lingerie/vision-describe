@@ -16,7 +16,7 @@ interface ImageUploadProps {
 
 export function ImageUpload({ 
   onUploadComplete, 
-  language = "uk", 
+  language = "en", 
   category = "product",
   certifications = []
 }: ImageUploadProps) {
