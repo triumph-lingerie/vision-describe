@@ -74,8 +74,68 @@ export default function Home() {
             Product Description Generator
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-            Generate professional e-commerce descriptions from product images
+            Generate professional e-commerce descriptions from product images using AI
           </p>
+        </div>
+
+        {/* Instructions Section */}
+        <div className="bg-muted/50 rounded-lg p-6 mb-8">
+          <h2 className="text-lg font-semibold mb-4 text-foreground">How to Use</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                  1
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground">Select Language</h3>
+                  <p className="text-sm text-muted-foreground">Choose the target language for your product description</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                  2
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground">Enter Product Category</h3>
+                  <p className="text-sm text-muted-foreground">Specify the product type (e.g., bra, panties, thong, bodysuit)</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                  3
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground">Add Certifications</h3>
+                  <p className="text-sm text-muted-foreground">Optional: Add quality certifications (e.g., OEKO-TEX®)</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                  4
+                </div>
+                <div>
+                  <h3 className="font-medium text-foreground">Upload Images</h3>
+                  <p className="text-sm text-muted-foreground">Upload 1-10 high-quality product images (max 10MB each)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">💡 Pro Tips</h4>
+            <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+              <li>• Upload multiple angles for better analysis and comprehensive descriptions</li>
+              <li>• Use high-resolution images with good lighting for best results</li>
+              <li>• The AI will automatically correct the category if it detects a different product type</li>
+              <li>• Descriptions are optimized for SEO and e-commerce platforms</li>
+            </ul>
+          </div>
         </div>
 
         {/* Settings and Upload Section */}

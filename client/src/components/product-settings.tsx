@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -114,10 +114,13 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                   <FormLabel>Product Category</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="e.g., bra, panties, thong..." 
+                      placeholder="e.g., bra, panties, thong, bodysuit, corset..." 
                       {...field} 
                     />
                   </FormControl>
+                  <FormDescription className="text-xs">
+                    Be specific: Use exact product type names for best results
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -128,6 +131,9 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
 
           <div className="space-y-2">
             <FormLabel>Certifications</FormLabel>
+            <FormDescription className="text-xs text-muted-foreground">
+              Add quality certifications like OEKO-TEX®, STANDARD 100, etc. (Optional)
+            </FormDescription>
             {fields.map((field, index) => (
               <div key={field.id} className="flex gap-2">
                 <FormField
@@ -137,7 +143,7 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                     <FormItem className="flex-1">
                       <FormControl>
                         <Input
-                          placeholder="e.g., OEKO-TEX® STANDARD 100"
+                          placeholder="e.g., OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI"
                           {...field}
                         />
                       </FormControl>
