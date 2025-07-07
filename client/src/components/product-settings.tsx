@@ -134,7 +134,7 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
                   <FormLabel>Product Category</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="e.g., Reggiseno, Slip, Perizoma..." 
+                      placeholder="e.g., bra, panties, thong..." 
                       {...field} 
                     />
                   </FormControl>
