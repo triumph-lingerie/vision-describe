@@ -22,7 +22,7 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
           content: [
             {
               type: "text",
-              text: `You are an expert e-commerce product description writer. Analyze these ${images.length} ${category} images from different angles and create a comprehensive professional product description that includes:
+              text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. Analyze these ${images.length} ${category} images from different angles and create a premium product description that follows professional brand standards.
 
 LANGUAGE: Write in the appropriate language based on the code:
 - uk: English (United Kingdom)
@@ -56,33 +56,39 @@ CONTENT REQUIREMENTS:
    - Dutch: "Deze ${category}"
    - Portuguese: "Estes ${category}" (or "Este/Esta" for singular)
    - And so on for other languages - use proper grammar and gender agreement
-2. Use ALL the images to create a comprehensive description that covers:
-   - Overall design and aesthetics visible across all angles
-   - Materials, textures, and construction details seen in the images
-   - Fit, comfort features, and functional aspects
-   - Design elements, patterns, and construction details
-   - Any unique features or selling points visible in any of the images
-   - IMPORTANT: Do NOT mention specific colors or sizes, as this description will be used for multiple variants of the same model
-3. A bulleted feature list with specific product attributes from all views
-4. Use a tone that's elegant, sophisticated, and persuasive
-5. Focus on comfort, quality, materials, fit, and unique selling points
-6. Include technical details when relevant
-7. NEVER mention specific colors, sizes, or variants - focus on the design and features that apply to all variants of this model
+2. CONTENT REQUIREMENTS - Use ALL images to create descriptions that answer:
+   - What is this product and what problems does it solve?
+   - What makes it different from other products?
+   - What materials and construction details are visible?
+   - How does the design provide comfort and functionality?
+   - Any unique features or selling points across all views
+   
+3. STYLE GUIDELINES:
+   - Use direct, intentional, and refined language (avoid "sexy", inappropriate terms)
+   - Write 150-200 words with natural sentence variation
+   - Avoid AI phrases like "Furthermore", "Moreover", "Delve into", "Realm", "Testament"
+   - Focus on emotional benefits and practical features
+   - Maintain elegant, sophisticated tone without sales language
+   
+4. CRITICAL RESTRICTIONS:
+   - NEVER mention specific colors, sizes, or variants
+   - Description must work for all product variants
+   - No generic or formulaic transitions
+   - No objectifying language
 
-FORMAT:
-- Main description paragraph starting with the product category
-- Bulleted features list (use HTML <ul class="pd"><li> format)
-- Any certifications or standards if applicable
+STRUCTURE (MANDATORY):
+1. Start with appropriate demonstrative + ${category} (2-3 sentences introduction)
+2. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
+3. Focus on materials, comfort, fit, and unique design elements
 
-Example format:
-These [product category] combine elegance with functionality...
+QUALITY REQUIREMENTS:
+- Unique, informative content (150-200 words)
+- Professional e-commerce standard
+- SEO-optimized without keyword stuffing
+- Human-like writing with natural flow
+- Premium brand positioning
 
-<ul class="pd">
-<li>Feature 1</li>
-<li>Feature 2</li>
-</ul>
-
-Write in a style similar to premium lingerie/fashion brands.`
+Write with the confidence and refinement of established fashion brands.`
             },
             ...imageContents
           ],
@@ -108,7 +114,7 @@ export async function analyzeImage(base64Image: string, mimeType: string, langua
           content: [
             {
               type: "text",
-              text: `You are an expert e-commerce product description writer. Analyze this ${category} image and create a professional product description that includes:
+              text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. Analyze this ${category} image and create a premium product description that follows professional brand standards.
 
 LANGUAGE: Write in the appropriate language based on the code:
 - uk: English (United Kingdom)
@@ -142,27 +148,38 @@ CONTENT REQUIREMENTS:
    - Dutch: "Deze ${category}"
    - Portuguese: "Estes ${category}" (or "Este/Esta" for singular)
    - And so on for other languages - use proper grammar and gender agreement
-2. A compelling main description paragraph (2-3 sentences) highlighting key benefits, materials, and appeal
-3. A bulleted feature list with specific product attributes
-4. Use a tone that's elegant, sophisticated, and persuasive
-5. Focus on comfort, quality, materials, fit, and unique selling points
-6. Include technical details when relevant
-7. NEVER mention specific colors, sizes, or variants - focus on the design and features that apply to all variants of this model
+2. CONTENT REQUIREMENTS - Analyze the image to create descriptions that answer:
+   - What is this product and what problems does it solve?
+   - What makes it different from other products?
+   - What materials and construction details are visible?
+   - How does the design provide comfort and functionality?
+   
+3. STYLE GUIDELINES:
+   - Use direct, intentional, and refined language (avoid "sexy", inappropriate terms)
+   - Write 150-200 words with natural sentence variation
+   - Avoid AI phrases like "Furthermore", "Moreover", "Delve into", "Realm", "Testament"
+   - Focus on emotional benefits and practical features
+   - Maintain elegant, sophisticated tone without sales language
+   
+4. CRITICAL RESTRICTIONS:
+   - NEVER mention specific colors, sizes, or variants
+   - Description must work for all product variants
+   - No generic or formulaic transitions
+   - No objectifying language
 
-FORMAT:
-- Main description paragraph starting with the product category
-- Bulleted features list (use HTML <ul class="pd"><li> format)
-- Any certifications or standards if applicable
+STRUCTURE (MANDATORY):
+1. Start with appropriate demonstrative + ${category} (2-3 sentences introduction)
+2. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
+3. Focus on materials, comfort, fit, and unique design elements
 
-Example format:
-These [product category] combine elegance with functionality...
+QUALITY REQUIREMENTS:
+- Unique, informative content (150-200 words)
+- Professional e-commerce standard
+- SEO-optimized without keyword stuffing
+- Human-like writing with natural flow
+- Premium brand positioning
 
-<ul class="pd">
-<li>Feature 1</li>
-<li>Feature 2</li>
-</ul>
-
-Write in a style similar to premium lingerie/fashion brands.`
+Write with the confidence and refinement of established fashion brands.`
             },
             {
               type: "image_url",
