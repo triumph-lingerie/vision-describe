@@ -60,12 +60,14 @@ CONTENT REQUIREMENTS:
    - Overall design and aesthetics visible across all angles
    - Materials, textures, and construction details seen in the images
    - Fit, comfort features, and functional aspects
-   - Color variations, patterns, or design elements
+   - Design elements, patterns, and construction details
    - Any unique features or selling points visible in any of the images
+   - IMPORTANT: Do NOT mention specific colors or sizes, as this description will be used for multiple variants of the same model
 3. A bulleted feature list with specific product attributes from all views
 4. Use a tone that's elegant, sophisticated, and persuasive
 5. Focus on comfort, quality, materials, fit, and unique selling points
 6. Include technical details when relevant
+7. NEVER mention specific colors, sizes, or variants - focus on the design and features that apply to all variants of this model
 
 FORMAT:
 - Main description paragraph starting with the product category
@@ -145,6 +147,7 @@ CONTENT REQUIREMENTS:
 4. Use a tone that's elegant, sophisticated, and persuasive
 5. Focus on comfort, quality, materials, fit, and unique selling points
 6. Include technical details when relevant
+7. NEVER mention specific colors, sizes, or variants - focus on the design and features that apply to all variants of this model
 
 FORMAT:
 - Main description paragraph starting with the product category

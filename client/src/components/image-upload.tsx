@@ -62,9 +62,11 @@ export function ImageUpload({ onUploadComplete, language = "uk", category = "pro
           variant: "destructive",
         });
       } else {
+        const totalImages = data.results.reduce((sum: number, result: any) => 
+          sum + (result.imageCount || 1), 0);
         toast({
           title: "Upload successful",
-          description: `${successes.length} image(s) processed successfully`,
+          description: `${totalImages} image(s) processed successfully`,
         });
       }
 
