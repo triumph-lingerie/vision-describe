@@ -3,22 +3,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Settings2, Plus, Trash2 } from "lucide-react";
@@ -26,13 +12,9 @@ import { Settings2, Plus, Trash2 } from "lucide-react";
 const settingsSchema = z.object({
   language: z.string().min(1, "Language is required"),
   category: z.string().min(1, "Product category is required"),
-  certifications: z
-    .array(
-      z.object({
-        value: z.string().optional(),
-      }),
-    )
-    .default([{ value: "" }]),
+  certifications: z.array(z.object({
+    value: z.string().optional()
+  })).default([{ value: "" }]),
 });
 
 type SettingsForm = z.infer<typeof settingsSchema>;
@@ -42,10 +24,7 @@ interface ProductSettingsProps {
   defaultSettings?: SettingsForm;
 }
 
-export function ProductSettings({
-  onSettingsChange,
-  defaultSettings,
-}: ProductSettingsProps) {
+export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSettingsProps) {
   const form = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
@@ -57,23 +36,21 @@ export function ProductSettings({
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "certifications",
+    name: "certifications"
   });
 
   const onSubmit = (values: SettingsForm) => {
     // Filter out empty certifications and join with comma
     const filteredCertifications = values.certifications
-      .filter((cert) => cert.value && cert.value.trim() !== "")
-      .map((cert) => cert.value!)
+      .filter(cert => cert.value && cert.value.trim() !== "")
+      .map(cert => cert.value!)
       .join(", ");
-
+    
     const formattedValues = {
       ...values,
-      certifications: filteredCertifications
-        ? [{ value: filteredCertifications }]
-        : [],
+      certifications: filteredCertifications ? [{ value: filteredCertifications }] : []
     };
-
+    
     onSettingsChange(formattedValues);
   };
 
@@ -92,6 +69,8 @@ export function ProductSettings({
     { code: "sv", name: "Svenska" },
   ];
 
+
+
   return (
     <Card className="p-6 mb-6">
       <div className="flex items-center gap-2 mb-4">
@@ -108,10 +87,7 @@ export function ProductSettings({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Language</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select language" />
@@ -137,9 +113,9 @@ export function ProductSettings({
                 <FormItem>
                   <FormLabel>Product Category</FormLabel>
                   <FormControl>
-                    <Input
-                      placeholder="e.g., minimizer bra, highwaist knickers, sports bra, bodysuit, thongs..."
-                      {...field}
+                    <Input 
+                      placeholder="e.g., bra, panties, thong, bodysuit, corset..." 
+                      {...field} 
                     />
                   </FormControl>
                   <FormDescription className="text-xs">
@@ -151,11 +127,12 @@ export function ProductSettings({
             />
           </div>
 
+
+
           <div className="space-y-2">
             <FormLabel>Certifications</FormLabel>
             <FormDescription className="text-xs text-muted-foreground">
-              Add quality certifications like OEKO-TEX®, STANDARD 100, etc.
-              (Optional)
+              Add quality certifications like OEKO-TEX®, STANDARD 100, etc. (Optional)
             </FormDescription>
             {fields.map((field, index) => (
               <div key={field.id} className="flex gap-2">
@@ -166,7 +143,7 @@ export function ProductSettings({
                     <FormItem className="flex-1">
                       <FormControl>
                         <Input
-                          placeholder="e.g., OEKO-TEX® STANDARD 100"
+                          placeholder="e.g., OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI"
                           {...field}
                         />
                       </FormControl>
