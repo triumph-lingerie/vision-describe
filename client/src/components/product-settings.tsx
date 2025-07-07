@@ -36,8 +36,8 @@ export function ProductSettings({ onSettingsChange, defaultSettings }: ProductSe
   return (
     <Card className="p-6">
       <div className="flex items-center space-x-2 mb-4">
-        <Settings2 className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold text-foreground">Product Settings</h3>
+        <Settings2 className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-medium text-foreground">Settings</h3>
       </div>
       
       <Form {...form}>

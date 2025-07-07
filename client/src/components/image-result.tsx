@@ -142,19 +142,19 @@ export function ImageResult({ result, className }: ImageResultProps) {
         <div className="p-6 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-foreground">Product Description</h3>
-              <div className="flex items-center space-x-2">
+              <h3 className="text-sm font-medium text-foreground">Description</h3>
+              <div className="flex items-center space-x-1">
                 {result.language && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs h-5">
                     {result.language.toUpperCase()}
                   </Badge>
                 )}
                 {result.category && (
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs h-5">
                     {result.category}
                   </Badge>
                 )}
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs h-5">
                   GPT-4V
                 </Badge>
               </div>

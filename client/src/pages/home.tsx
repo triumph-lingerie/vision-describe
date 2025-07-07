@@ -65,13 +65,12 @@ export default function Home() {
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-8">
         
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-4">
-            AI Product Description Generator
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-medium text-foreground mb-2">
+            Product Description Generator
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Upload product images and get professional e-commerce descriptions powered by GPT-4 Vision. 
-            Perfect for online stores, catalogs, and product marketing.
+          <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+            Generate professional e-commerce descriptions from product images
           </p>
         </div>
 
@@ -90,8 +89,8 @@ export default function Home() {
 
           {/* Results Section */}
           {results.length > 0 && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-foreground">Generated Product Descriptions</h2>
+            <div className="space-y-4">
+              <h2 className="text-lg font-medium text-foreground">Results</h2>
               <div className="space-y-6">
                 {results.map((result, index) => (
                   <ImageResult
