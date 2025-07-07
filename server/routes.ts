@@ -52,10 +52,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: category,
           });
 
+          // Extract features from description for debugging
+          const features = description.match(/<li>(.*?)<\/li>/g)?.map(item => 
+            item.replace(/<\/?li>/g, '').trim()
+          ) || [];
+          
           results.push({
             id: analysis.id,
             originalName: analysis.originalName,
             description: analysis.description,
+            extractedFeatures: features,
+            wordCount: description.split(' ').length,
             createdAt: analysis.createdAt,
             fileSize: analysis.fileSize,
             language: analysis.language,
@@ -94,6 +101,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             category: category,
           });
 
+          // Extract features from description for debugging
+          const features = description.match(/<li>(.*?)<\/li>/g)?.map(item => 
+            item.replace(/<\/?li>/g, '').trim()
+          ) || [];
+          
           // Return all images with the combined description
           const allImagesData = files.map(file => `data:${file.mimetype};base64,${file.buffer.toString('base64')}`);
           
@@ -101,6 +113,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: analysis.id,
             originalName: analysis.originalName,
             description: analysis.description,
+            extractedFeatures: features,
+            wordCount: description.split(' ').length,
             createdAt: analysis.createdAt,
             fileSize: analysis.fileSize,
             language: analysis.language,

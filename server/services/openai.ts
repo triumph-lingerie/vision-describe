@@ -47,16 +47,16 @@ LANGUAGE: Write in the appropriate language based on the code:
 Current language code: ${language}
 
 CONTENT REQUIREMENTS:
-1. Start with the appropriate demonstrative + ${category} in the target language (for SEO purposes):
-   - English: "These ${category}"
-   - German: "Diese ${category}" (or "Dieser" for masculine nouns)
-   - French: "Ces ${category}" (or "Ce/Cette" for singular)
-   - Italian: "Questi ${category}" (or "Questo/Questa" for singular depending on gender)
-   - Spanish: "Estos ${category}" (or "Este/Esta" for singular)
-   - Dutch: "Deze ${category}"
-   - Portuguese: "Estes ${category}" (or "Este/Esta" for singular)
-   - And so on for other languages - use proper grammar and gender agreement
-2. CONTENT REQUIREMENTS - Use ALL images to create descriptions that answer:
+1. Start with the appropriate demonstrative + ${category} in the target language with PERFECT GRAMMAR:
+   - English: "This ${category}" (singular) or "These ${category}" (plural)
+   - German: "Dieser/Diese/Dieses ${category}" (check gender/number agreement)
+   - French: "Ce/Cette ${category}" (singular) or "Ces ${category}" (plural)
+   - Italian: "Questo/Questa ${category}" (singular) or "Questi/Queste ${category}" (plural, check gender)
+   - Spanish: "Este/Esta ${category}" (singular) or "Estos/Estas ${category}" (plural, check gender)
+   - Dutch: "Deze ${category}" (singular/plural)
+   - Portuguese: "Este/Esta ${category}" (singular) or "Estes/Estas ${category}" (plural, check gender)
+   - CRITICAL: Analyze if "${category}" is singular or plural, masculine or feminine, and apply correct grammar
+2. Use ALL images to create descriptions that answer:
    - What is this product and what problems does it solve?
    - What makes it different from other products?
    - What materials and construction details are visible?
@@ -77,9 +77,10 @@ CONTENT REQUIREMENTS:
    - No objectifying language
 
 STRUCTURE (MANDATORY):
-1. Start with appropriate demonstrative + ${category} (2-3 sentences introduction)
+1. Start with grammatically correct demonstrative + ${category} (2-3 sentences introduction)
 2. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
-3. Focus on materials, comfort, fit, and unique design elements
+3. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
+4. NO OTHER TEXT after the bullet points except certifications
 
 QUALITY REQUIREMENTS:
 - Unique, informative content (150-200 words)
@@ -139,16 +140,16 @@ LANGUAGE: Write in the appropriate language based on the code:
 Current language code: ${language}
 
 CONTENT REQUIREMENTS:
-1. Start with the appropriate demonstrative + ${category} in the target language (for SEO purposes):
-   - English: "These ${category}"
-   - German: "Diese ${category}" (or "Dieser" for masculine nouns)
-   - French: "Ces ${category}" (or "Ce/Cette" for singular)
-   - Italian: "Questi ${category}" (or "Questo/Questa" for singular depending on gender)
-   - Spanish: "Estos ${category}" (or "Este/Esta" for singular)
-   - Dutch: "Deze ${category}"
-   - Portuguese: "Estes ${category}" (or "Este/Esta" for singular)
-   - And so on for other languages - use proper grammar and gender agreement
-2. CONTENT REQUIREMENTS - Analyze the image to create descriptions that answer:
+1. Start with the appropriate demonstrative + ${category} in the target language with PERFECT GRAMMAR:
+   - English: "This ${category}" (singular) or "These ${category}" (plural)
+   - German: "Dieser/Diese/Dieses ${category}" (check gender/number agreement)
+   - French: "Ce/Cette ${category}" (singular) or "Ces ${category}" (plural)
+   - Italian: "Questo/Questa ${category}" (singular) or "Questi/Queste ${category}" (plural, check gender)
+   - Spanish: "Este/Esta ${category}" (singular) or "Estos/Estas ${category}" (plural, check gender)
+   - Dutch: "Deze ${category}" (singular/plural)
+   - Portuguese: "Este/Esta ${category}" (singular) or "Estes/Estas ${category}" (plural, check gender)
+   - CRITICAL: Analyze if "${category}" is singular or plural, masculine or feminine, and apply correct grammar
+2. Analyze the image to create descriptions that answer:
    - What is this product and what problems does it solve?
    - What makes it different from other products?
    - What materials and construction details are visible?
@@ -168,9 +169,10 @@ CONTENT REQUIREMENTS:
    - No objectifying language
 
 STRUCTURE (MANDATORY):
-1. Start with appropriate demonstrative + ${category} (2-3 sentences introduction)
+1. Start with grammatically correct demonstrative + ${category} (2-3 sentences introduction)
 2. Add feature list in HTML format: <ul class="pd"><li>Feature</li><li>Feature</li></ul>
-3. Focus on materials, comfort, fit, and unique design elements
+3. End ONLY with certifications if applicable (e.g., "OEKO-TEX® STANDARD 100, 22.0.22419 Hohenstein HTTI")
+4. NO OTHER TEXT after the bullet points except certifications
 
 QUALITY REQUIREMENTS:
 - Unique, informative content (150-200 words)

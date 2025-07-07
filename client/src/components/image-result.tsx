@@ -12,6 +12,8 @@ interface ImageResultProps {
     id?: number;
     originalName: string;
     description?: string;
+    extractedFeatures?: string[];
+    wordCount?: number;
     createdAt?: Date | string;
     fileSize?: number;
     imageData?: string;
