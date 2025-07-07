@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
 import { ProductSettings } from "@/components/product-settings";
 import { useTheme } from "@/components/theme-provider";
-import { Image, Sun, Moon, Github } from "lucide-react";
+import { Image, Sun, Moon, Github, ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
@@ -13,6 +14,7 @@ export default function Home() {
     category: "",
     certifications: [{ value: "" }],
   });
+  const [isHowToOpen, setIsHowToOpen] = useState(false);
   const { theme, setTheme } = useTheme();
 
   const handleUploadComplete = (newResults: any[]) => {
@@ -78,56 +80,76 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Instructions Section */}
-        <div className="bg-muted/50 rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4 text-foreground">How to Use</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                  1
+        {/* How to Use Section - Collapsible */}
+        <div className="mb-8">
+          <Collapsible open={isHowToOpen} onOpenChange={setIsHowToOpen}>
+            <CollapsibleTrigger asChild>
+              <Button 
+                variant="outline" 
+                className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted/80 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5" />
+                  <span className="font-medium">How to Use</span>
                 </div>
-                <div>
-                  <h3 className="font-medium text-foreground">Select Language</h3>
-                  <p className="text-sm text-muted-foreground">Choose the target language for your product description</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                  2
-                </div>
-                <div>
-                  <h3 className="font-medium text-foreground">Enter Product Category</h3>
-                  <p className="text-sm text-muted-foreground">Specify the product type (e.g., bra, panties, thong, bodysuit)</p>
-                </div>
-              </div>
-            </div>
+                {isHowToOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
             
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                  3
-                </div>
-                <div>
-                  <h3 className="font-medium text-foreground">Add Certifications</h3>
-                  <p className="text-sm text-muted-foreground">Optional: Add quality certifications (e.g., OEKO-TEX®)</p>
+            <CollapsibleContent className="mt-2">
+              <div className="bg-muted/50 rounded-lg p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                        1
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">Select Language</h3>
+                        <p className="text-sm text-muted-foreground">Choose the target language for your product description</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                        2
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">Enter Product Category</h3>
+                        <p className="text-sm text-muted-foreground">Specify the product type (e.g., bra, panties, thong, bodysuit)</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                        3
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">Add Certifications</h3>
+                        <p className="text-sm text-muted-foreground">Optional: Add quality certifications (e.g., OEKO-TEX®)</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                        4
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-foreground">Upload Images</h3>
+                        <p className="text-sm text-muted-foreground">Upload 1-10 high-quality product images (max 10MB each)</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                  4
-                </div>
-                <div>
-                  <h3 className="font-medium text-foreground">Upload Images</h3>
-                  <p className="text-sm text-muted-foreground">Upload 1-10 high-quality product images (max 10MB each)</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         {/* Settings and Upload Section */}
