@@ -95,39 +95,4 @@
     @apply text-sm text-muted-foreground;
   }
 
-  /* Flag animations */
-  @keyframes flag-wave {
-    0%, 100% { transform: rotate(0deg) scale(1); }
-    25% { transform: rotate(-3deg) scale(1.05); }
-    75% { transform: rotate(3deg) scale(1.05); }
-  }
-
-  @keyframes flag-bounce {
-    0%, 100% { transform: translateY(0px) scale(1); }
-    50% { transform: translateY(-4px) scale(1.1); }
-  }
-
-  @keyframes flag-celebration {
-    0% { transform: rotate(0deg) scale(1); }
-    25% { transform: rotate(-15deg) scale(1.2); }
-    50% { transform: rotate(15deg) scale(1.2); }
-    75% { transform: rotate(-10deg) scale(1.1); }
-    100% { transform: rotate(0deg) scale(1); }
-  }
-
-  .flag-wave {
-    animation: flag-wave 0.6s ease-in-out;
-  }
-
-  .flag-bounce {
-    animation: flag-bounce 0.4s ease-in-out;
-  }
-
-  .flag-celebration {
-    animation: flag-celebration 0.5s ease-in-out;
-  }
-
-  .flag-hover:hover {
-    animation: flag-wave 0.8s ease-in-out infinite;
-  }
 }

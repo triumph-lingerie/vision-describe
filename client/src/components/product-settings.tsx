@@ -47,11 +47,7 @@ export function ProductSettings({
   onSettingsChange,
   defaultSettings,
 }: ProductSettingsProps) {
-  const [selectedLanguage, setSelectedLanguage] = useState(
-    defaultSettings?.language || "en",
-  );
-  const [isLanguageChanging, setIsLanguageChanging] = useState(false);
-  const [flagAnimation, setFlagAnimation] = useState("");
+
 
   const form = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
@@ -85,37 +81,22 @@ export function ProductSettings({
   };
 
   const languages = [
-    { code: "cs", name: "Čeština", flag: "🇨🇿" },
-    { code: "da", name: "Dansk", flag: "🇩🇰" },
-    { code: "nl", name: "Nederlands", flag: "🇳🇱" },
-    { code: "en", name: "English", flag: "🇬🇧" },
-    { code: "fr", name: "Français", flag: "🇫🇷" },
-    { code: "de", name: "Deutsch", flag: "🇩🇪" },
-    { code: "hu", name: "Magyar", flag: "🇭🇺" },
-    { code: "it", name: "Italiano", flag: "🇮🇹" },
-    { code: "pl", name: "Polski", flag: "🇵🇱" },
-    { code: "pt", name: "Português", flag: "🇵🇹" },
-    { code: "es", name: "Español", flag: "🇪🇸" },
-    { code: "sv", name: "Svenska", flag: "🇸🇪" },
+    { code: "cs", name: "Čeština" },
+    { code: "da", name: "Dansk" },
+    { code: "nl", name: "Nederlands" },
+    { code: "en", name: "English" },
+    { code: "fr", name: "Français" },
+    { code: "de", name: "Deutsch" },
+    { code: "hu", name: "Magyar" },
+    { code: "it", name: "Italiano" },
+    { code: "pl", name: "Polski" },
+    { code: "pt", name: "Português" },
+    { code: "es", name: "Español" },
+    { code: "sv", name: "Svenska" },
   ];
 
-  const handleLanguageChange = (newLanguage: string) => {
-    setIsLanguageChanging(true);
-    setFlagAnimation("flag-celebration");
-
-    setTimeout(() => {
-      setSelectedLanguage(newLanguage);
-      form.setValue("language", newLanguage);
-      setIsLanguageChanging(false);
-      setFlagAnimation("flag-bounce");
-
-      // Clear animation after completion
-      setTimeout(() => setFlagAnimation(""), 400);
-    }, 150);
-  };
-
   const getSelectedLanguage = () => {
-    return languages.find((lang) => lang.code === selectedLanguage);
+    return languages.find((lang) => lang.code === form.watch("language"));
   };
 
   return (
@@ -133,54 +114,22 @@ export function ProductSettings({
               name="language"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    Language
-                    {getSelectedLanguage() && (
-                      <span
-                        className={`text-xl transition-all duration-200 ${flagAnimation} ${
-                          isLanguageChanging
-                            ? "scale-125 rotate-12"
-                            : "scale-100 rotate-0"
-                        }`}
-                      >
-                        {getSelectedLanguage()?.flag}
-                      </span>
-                    )}
-                  </FormLabel>
+                  <FormLabel>Language</FormLabel>
                   <Select
-                    onValueChange={(value) => {
-                      handleLanguageChange(value);
-                      field.onChange(value);
-                    }}
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
-                      <SelectTrigger className="transition-all duration-200 hover:border-primary/50">
+                      <SelectTrigger>
                         <SelectValue placeholder="Select language">
-                          {getSelectedLanguage() && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">
-                                {getSelectedLanguage()?.flag}
-                              </span>
-                              <span>{getSelectedLanguage()?.name}</span>
-                            </div>
-                          )}
+                          {getSelectedLanguage()?.name}
                         </SelectValue>
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {languages.map((lang) => (
-                        <SelectItem
-                          key={lang.code}
-                          value={lang.code}
-                          className="transition-all duration-200 hover:bg-primary/10"
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg flag-hover transition-transform duration-200 hover:scale-110">
-                              {lang.flag}
-                            </span>
-                            <span>{lang.name}</span>
-                          </div>
+                        <SelectItem key={lang.code} value={lang.code}>
+                          {lang.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
