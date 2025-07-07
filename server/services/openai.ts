@@ -9,6 +9,15 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
   try {
     console.log(`Analyzing ${images.length} images with language: ${language}, category: ${category}`);
     
+    // Debug: Check image data quality
+    images.forEach((img, index) => {
+      console.log(`Image ${index + 1}:`, {
+        mimeType: img.mimeType,
+        base64Length: img.base64.length,
+        base64Preview: img.base64.substring(0, 50) + "..."
+      });
+    });
+    
     const imageContents = images.map(img => ({
       type: "image_url" as const,
       image_url: {
@@ -138,6 +147,13 @@ IMPORTANT: You are receiving real product images. Examine them carefully and des
 
 export async function analyzeImage(base64Image: string, mimeType: string, language: string = "en", category: string = "product", certifications: string = ""): Promise<string> {
   try {
+    console.log(`Analyzing single image with language: ${language}, category: ${category}`);
+    console.log(`Image data:`, {
+      mimeType,
+      base64Length: base64Image.length,
+      base64Preview: base64Image.substring(0, 50) + "..."
+    });
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
