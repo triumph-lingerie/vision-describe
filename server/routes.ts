@@ -27,7 +27,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/images/analyze", upload.array('images', 10), async (req: Request, res: Response) => {
     try {
       const files = req.files as Express.Multer.File[];
-      const { language = "uk", category = "product" } = req.body;
+      const { 
+        language = "uk", 
+        category = "product",
+        autoDetectCategory = "false",
+        certifications = "",
+        articleNumber = "",
+        ean = "",
+        composition = ""
+      } = req.body;
       
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "No images uploaded" });
@@ -40,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const file = files[0];
         try {
           const base64Image = file.buffer.toString('base64');
-          const description = await analyzeImage(base64Image, file.mimetype, language, category);
+          const description = await analyzeImage(base64Image, file.mimetype, language, category, autoDetectCategory === "true", certifications, articleNumber, ean, composition);
           
           const analysis = await storage.createImageAnalysis({
             filename: `${Date.now()}-${file.originalname}`,
@@ -67,6 +75,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fileSize: analysis.fileSize,
             language: analysis.language,
             category: analysis.category,
+            detectedCategory: autoDetectCategory === "true" ? "Auto-detected from image" : undefined,
+            certifications: certifications || undefined,
+            articleNumber: articleNumber || undefined,
+            ean: ean || undefined,
+            composition: composition || undefined,
             imageData: `data:${file.mimetype};base64,${base64Image}`
           });
         } catch (error) {
@@ -85,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             mimeType: file.mimetype
           }));
           
-          const description = await analyzeImages(images, language, category);
+          const description = await analyzeImages(images, language, category, autoDetectCategory === "true", certifications, articleNumber, ean, composition);
           
           // Create a combined filename for storage
           const combinedFilename = `${Date.now()}-combined-${files.length}-images`;
@@ -119,6 +132,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fileSize: analysis.fileSize,
             language: analysis.language,
             category: analysis.category,
+            detectedCategory: autoDetectCategory === "true" ? "Auto-detected from image" : undefined,
+            certifications: certifications || undefined,
+            articleNumber: articleNumber || undefined,
+            ean: ean || undefined,
+            composition: composition || undefined,
             imageData: allImagesData[0], // Primary image for display
             allImages: allImagesData, // All images for carousel
             isMultiImage: true,

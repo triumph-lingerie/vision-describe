@@ -8,14 +8,22 @@ import { Image, Sun, Moon, Github } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
-  const [settings, setSettings] = useState({ language: "uk", category: "" });
+  const [settings, setSettings] = useState({ 
+    language: "uk", 
+    category: "",
+    autoDetectCategory: false,
+    certifications: "",
+    articleNumber: "",
+    ean: "",
+    composition: ""
+  });
   const { theme, setTheme } = useTheme();
 
   const handleUploadComplete = (newResults: any[]) => {
     setResults((prev) => [...newResults, ...prev]);
   };
 
-  const handleSettingsChange = (newSettings: { language: string; category: string }) => {
+  const handleSettingsChange = (newSettings: any) => {
     setSettings(newSettings);
   };
 
@@ -85,6 +93,11 @@ export default function Home() {
             onUploadComplete={handleUploadComplete}
             language={settings.language}
             category={settings.category}
+            autoDetectCategory={settings.autoDetectCategory}
+            certifications={settings.certifications}
+            articleNumber={settings.articleNumber}
+            ean={settings.ean}
+            composition={settings.composition}
           />
 
           {/* Results Section */}

@@ -11,9 +11,23 @@ interface ImageUploadProps {
   onUploadComplete: (results: any[]) => void;
   language?: string;
   category?: string;
+  autoDetectCategory?: boolean;
+  certifications?: string;
+  articleNumber?: string;
+  ean?: string;
+  composition?: string;
 }
 
-export function ImageUpload({ onUploadComplete, language = "uk", category = "product" }: ImageUploadProps) {
+export function ImageUpload({ 
+  onUploadComplete, 
+  language = "uk", 
+  category = "product",
+  autoDetectCategory = false,
+  certifications = "",
+  articleNumber = "",
+  ean = "",
+  composition = ""
+}: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
@@ -31,6 +45,11 @@ export function ImageUpload({ onUploadComplete, language = "uk", category = "pro
       // Add language and category to form data
       formData.append('language', language);
       formData.append('category', category);
+      formData.append('autoDetectCategory', autoDetectCategory.toString());
+      formData.append('certifications', certifications);
+      formData.append('articleNumber', articleNumber);
+      formData.append('ean', ean);
+      formData.append('composition', composition);
 
       // Simulate progress
       const progressInterval = setInterval(() => {
