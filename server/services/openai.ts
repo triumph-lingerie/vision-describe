@@ -136,9 +136,12 @@ QUALITY REQUIREMENTS:
 
 Write with the confidence and refinement of premium fashion and lingerie brands.
 
-CERTIFICATIONS: If certifications are provided, include them at the end: ${certifications || ""}
+CERTIFICATIONS TO INCLUDE: ${certifications || "NONE - do not add any certification text"}
 
-IMPORTANT: You are receiving real product images. Examine them carefully and describe what you actually see. Do not provide generic responses.`
+IMPORTANT RULES:
+- You are receiving real product images. Examine them carefully and describe what you actually see. Do not provide generic responses.
+- If no certifications provided above, end with the bullet points (no certification section)
+- Do not invent or add generic certification text`
             },
             ...imageContents
           ],
@@ -275,7 +278,11 @@ QUALITY REQUIREMENTS:
 
 Write with the confidence and refinement of premium fashion and lingerie brands.
 
-CERTIFICATIONS: If certifications are provided, include them at the end: ${certifications || ""}`
+CERTIFICATIONS TO INCLUDE: ${certifications || "NONE - do not add any certification text"}
+
+IMPORTANT RULES:
+- If no certifications provided above, end with the bullet points (no certification section)
+- Do not invent or add generic certification text`
             },
             {
               type: "image_url",
