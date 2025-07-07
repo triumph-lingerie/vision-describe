@@ -11,6 +11,7 @@ interface ImageUploadProps {
   onUploadComplete: (results: any[]) => void;
   language?: string;
   category?: string;
+  autoDetectCategory?: boolean;
   certifications?: Array<{ value?: string }>;
 }
 
@@ -18,6 +19,7 @@ export function ImageUpload({
   onUploadComplete, 
   language = "uk", 
   category = "product",
+  autoDetectCategory = false,
   certifications = []
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -37,6 +39,7 @@ export function ImageUpload({
       // Add language and category to form data
       formData.append('language', language);
       formData.append('category', category);
+      formData.append('autoDetectCategory', autoDetectCategory.toString());
       
       // Format certifications array to comma-separated string
       const formattedCertifications = certifications

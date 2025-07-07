@@ -11,6 +11,7 @@ export default function Home() {
   const [settings, setSettings] = useState({ 
     language: "uk", 
     category: "",
+    autoDetectCategory: false,
     certifications: [{ value: "" }],
   });
   const { theme, setTheme } = useTheme();

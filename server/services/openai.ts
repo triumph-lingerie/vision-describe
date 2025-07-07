@@ -5,7 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
 });
 
-export async function analyzeImages(images: Array<{base64: string, mimeType: string}>, language: string = "uk", category: string = "product", certifications: string = ""): Promise<string> {
+export async function analyzeImages(images: Array<{base64: string, mimeType: string}>, language: string = "uk", category: string = "product", autoDetectCategory: boolean = false, certifications: string = ""): Promise<string> {
   try {
     const imageContents = images.map(img => ({
       type: "image_url" as const,
@@ -24,7 +24,9 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
               type: "text",
               text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
 
-PRODUCT ANALYSIS: First analyze these ${images.length} images to confirm if they show "${category}" products. If the images show a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the images.
+${autoDetectCategory ? 
+  `PRODUCT ANALYSIS: Analyze these ${images.length} images and automatically detect the product type. Use the detected product type in your description regardless of any specified category.` : 
+  `PRODUCT ANALYSIS: First analyze these ${images.length} images to confirm if they show "${category}" products. If the images show a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the images.`}
 
 Create a premium product description that follows professional brand standards.
 
@@ -126,7 +128,7 @@ Write with the confidence and refinement of premium fashion and lingerie brands.
   }
 }
 
-export async function analyzeImage(base64Image: string, mimeType: string, language: string = "uk", category: string = "product", certifications: string = ""): Promise<string> {
+export async function analyzeImage(base64Image: string, mimeType: string, language: string = "uk", category: string = "product", autoDetectCategory: boolean = false, certifications: string = ""): Promise<string> {
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
@@ -138,7 +140,9 @@ export async function analyzeImage(base64Image: string, mimeType: string, langua
               type: "text",
               text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
 
-PRODUCT ANALYSIS: First analyze this image to confirm if it shows a "${category}" product. If the image shows a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the image.
+${autoDetectCategory ? 
+  `PRODUCT ANALYSIS: Analyze this image and automatically detect the product type. Use the detected product type in your description regardless of any specified category.` : 
+  `PRODUCT ANALYSIS: First analyze this image to confirm if it shows a "${category}" product. If the image shows a different product type, use the actual detected product type instead of "${category}" in your description. Always use the correct product name based on what you see in the image.`}
 
 Create a premium product description that follows professional brand standards.
 
