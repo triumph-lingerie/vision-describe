@@ -108,7 +108,24 @@ Write with the confidence and refinement of premium fashion and lingerie brands.
       max_tokens: 800,
     });
 
-    return response.choices[0].message.content || "Unable to generate description for these images.";
+    let result = response.choices[0].message.content || "Unable to generate description for these images.";
+    
+    // Append additional fields if provided
+    if (composition) {
+      result += `\n\n${composition}`;
+    }
+    
+    if (certifications) {
+      result += `\n\n${certifications}`;
+    }
+    
+    if (articleNumber && ean) {
+      result += `\nArtikelnummer: ${articleNumber} (${ean})`;
+    } else if (articleNumber) {
+      result += `\nArtikelnummer: ${articleNumber}`;
+    }
+    
+    return result;
   } catch (error) {
     console.error("Error analyzing images with OpenAI:", error);
     throw new Error("Failed to analyze images. Please try again.");
@@ -215,7 +232,24 @@ Write with the confidence and refinement of premium fashion and lingerie brands.
       max_tokens: 500,
     });
 
-    return response.choices[0].message.content || "Unable to generate description for this image.";
+    let result = response.choices[0].message.content || "Unable to generate description for this image.";
+    
+    // Append additional fields if provided
+    if (composition) {
+      result += `\n\n${composition}`;
+    }
+    
+    if (certifications) {
+      result += `\n\n${certifications}`;
+    }
+    
+    if (articleNumber && ean) {
+      result += `\nArtikelnummer: ${articleNumber} (${ean})`;
+    } else if (articleNumber) {
+      result += `\nArtikelnummer: ${articleNumber}`;
+    }
+    
+    return result;
   } catch (error) {
     console.error("Error analyzing image with OpenAI:", error);
     throw new Error("Failed to analyze image. Please try again.");
