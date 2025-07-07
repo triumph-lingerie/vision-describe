@@ -15,7 +15,7 @@ export async function analyzeImage(base64Image: string, mimeType: string): Promi
           content: [
             {
               type: "text",
-              text: "Analyze this image in detail and provide a comprehensive description. Include information about the main subjects, composition, colors, mood, setting, and any notable visual elements. Make the description engaging and informative."
+              text: "You are an expert e-commerce product description writer. Analyze this product image and create a professional product description that includes:\n\n1. A compelling main description paragraph (2-3 sentences) highlighting key benefits, materials, and appeal\n2. A bulleted feature list with specific product attributes\n3. Use a tone that's elegant, sophisticated, and persuasive\n4. Focus on comfort, quality, materials, fit, and unique selling points\n5. Include technical details when relevant\n\nFormat the response as:\n- Main description paragraph\n- Bulleted features list (use HTML <ul class=\"pd\"><li> format)\n- Any certifications or standards if applicable\n\nWrite in a style similar to premium lingerie/fashion brands."
             },
             {
               type: "image_url",

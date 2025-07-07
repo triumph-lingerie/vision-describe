@@ -136,7 +136,7 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
                 Processing images...
               </p>
               <p className="text-sm text-muted-foreground">
-                Analyzing with GPT-4 Vision
+                Generating product descriptions with GPT-4 Vision
               </p>
               <div className="max-w-xs mx-auto">
                 <Progress value={uploadProgress} className="h-2" />
@@ -151,18 +151,18 @@ export function ImageUpload({ onUploadComplete }: ImageUploadProps) {
             <div className="space-y-2">
               <p className="text-lg font-medium text-foreground">
                 {isDragActive
-                  ? "Drop your images here"
-                  : "Drop your images here or click to browse"
+                  ? "Drop your product images here"
+                  : "Drop your product images here or click to browse"
                 }
               </p>
               <p className="text-sm text-muted-foreground">
-                Supports PNG, JPG, JPEG, WEBP up to 10MB
+                Upload product photos (PNG, JPG, JPEG, WEBP up to 10MB)
               </p>
             </div>
             {!isDragActive && (
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Select Images
+                Select Product Images
               </Button>
             )}
           </div>

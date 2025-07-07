@@ -140,16 +140,17 @@ export function ImageResult({ result, className }: ImageResultProps) {
         <div className="p-6 flex flex-col justify-between">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-foreground">AI Description</h3>
+              <h3 className="font-semibold text-foreground">Product Description</h3>
               <Badge variant="secondary" className="text-xs">
                 GPT-4V
               </Badge>
             </div>
 
             <div className="prose prose-sm max-w-none">
-              <p className="text-foreground leading-relaxed">
-                {result.description}
-              </p>
+              <div 
+                className="text-foreground leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: result.description || '' }}
+              />
             </div>
           </div>
 

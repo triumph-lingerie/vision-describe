@@ -26,7 +26,7 @@ export default function Home() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Image className="h-6 w-6 text-primary" />
-                <h1 className="text-xl font-semibold text-foreground">AI Image Descriptor</h1>
+                <h1 className="text-xl font-semibold text-foreground">Product Description Generator</h1>
               </div>
             </div>
             
@@ -61,11 +61,11 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl mb-4">
-            Describe Images with AI
+            AI Product Description Generator
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Upload your images and get detailed descriptions powered by GPT-4 Vision. 
-            Perfect for accessibility, content creation, and understanding visual content.
+            Upload product images and get professional e-commerce descriptions powered by GPT-4 Vision. 
+            Perfect for online stores, catalogs, and product marketing.
           </p>
         </div>
 
@@ -76,7 +76,7 @@ export default function Home() {
           {/* Results Section */}
           {results.length > 0 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-foreground">Recent Analyses</h2>
+              <h2 className="text-2xl font-semibold text-foreground">Generated Product Descriptions</h2>
               <div className="space-y-6">
                 {results.map((result, index) => (
                   <ImageResult

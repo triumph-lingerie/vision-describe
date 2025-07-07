@@ -1,8 +1,8 @@
-# AI Image Analysis Application
+# AI Product Description Generator
 
 ## Overview
 
-This is a full-stack web application that allows users to upload images and receive AI-powered descriptions using OpenAI's GPT-4 Vision model. The application features a modern React frontend with a Node.js/Express backend, utilizing PostgreSQL for data persistence and Drizzle ORM for database operations.
+This is a full-stack web application specifically designed for e-commerce businesses to generate professional product descriptions from product images using OpenAI's GPT-4 Vision model. The AI analyzes product photos and creates marketing-ready descriptions with detailed feature lists in a premium brand style. The application features a modern Vercel-inspired React frontend with a Node.js/Express backend, utilizing in-memory storage for development.
 
 ## System Architecture
 
@@ -38,9 +38,10 @@ This is a full-stack web application that allows users to upload images and rece
   - Creation timestamp
 
 ### API Endpoints
-- `POST /api/images/analyze`: Upload and analyze multiple images
-  - Accepts up to 10 images (10MB limit each)
-  - Returns AI analysis results for each image
+- `POST /api/images/analyze`: Upload and analyze product images
+  - Accepts up to 10 product images (10MB limit each)
+  - Generates professional e-commerce descriptions with feature lists
+  - Returns marketing-ready content in premium brand style
   - Handles errors gracefully for individual files
 
 ### Frontend Components
@@ -50,11 +51,12 @@ This is a full-stack web application that allows users to upload images and rece
 
 ## Data Flow
 
-1. **Image Upload**: Users drag/drop or select images through the upload interface
+1. **Product Image Upload**: Users drag/drop or select product photos through the upload interface
 2. **File Processing**: Multer processes uploaded files into memory buffers
-3. **AI Analysis**: Images are converted to base64 and sent to OpenAI GPT-4 Vision
-4. **Data Persistence**: Analysis results are stored in PostgreSQL database
-5. **Result Display**: Frontend displays results with options to copy or export descriptions
+3. **AI Product Analysis**: Images are converted to base64 and sent to OpenAI GPT-4 Vision with specialized e-commerce prompting
+4. **Description Generation**: AI generates professional product descriptions with feature lists in premium brand style
+5. **Data Persistence**: Product analysis results are stored in memory storage
+6. **Result Display**: Frontend displays results with HTML rendering for formatted descriptions, copy and export functionality
 
 ## External Dependencies
 
@@ -96,7 +98,12 @@ This is a full-stack web application that allows users to upload images and rece
 - `npm start`: Runs production server
 
 ## Changelog
-- July 07, 2025. Initial setup
+- July 07, 2025: Initial setup with basic image analysis functionality
+- July 07, 2025: Transformed to specialized AI Product Description Generator
+  - Modified OpenAI prompts for e-commerce product descriptions
+  - Updated UI text and branding for product focus
+  - Added HTML rendering support for formatted descriptions
+  - Styled components for premium product description display
 
 ## User Preferences
 
