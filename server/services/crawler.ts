@@ -41,7 +41,17 @@ export async function crawlProductPage(url: string): Promise<CrawlResult> {
 }
 
 async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
-  const scrapeResult = await app.scrapeUrl(url);
+  // Configure Firecrawl for optimal performance and structured extraction
+  const scrapeResult = await app.scrapeUrl(url, {
+    formats: ['json', 'html'], // Use JSON for structured extraction + HTML for fallback
+    maxAge: 3600000, // Cache for 1 hour (500% faster for repeated requests)
+    jsonOptions: {
+      prompt: 'Extract from this product page: the product category (like "Minimizer bra", "Wired bra", etc.) and main product images URLs. Focus on actual product photos, not promotional banners or suggestions.'
+    },
+    includeTags: ['img', 'meta', 'title', 'div'], // Include essential tags
+    excludeTags: ['script', 'style'], // Exclude unnecessary tags
+    waitFor: 1000 // Wait for dynamic content
+  });
   
   if (!scrapeResult.success) {
     throw new Error(`Firecrawl failed: ${scrapeResult.error}`);
@@ -54,115 +64,62 @@ async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
   console.log('Available data:', {
     hasMarkdown: !!scrapedData.markdown,
     hasMetadata: !!scrapedData.metadata,
+    hasJson: !!scrapedData.json,
     markdownLength: scrapedData.markdown?.length || 0,
-    imageCount: scrapedData.metadata?.image?.length || 0
+    imageCount: scrapedData.metadata?.image?.length || 0,
+    hasHtml: !!scrapedData.html
   });
 
   const language = detectLanguageFromData(url, scrapedData);
   
-  // Enhanced category extraction for Triumph specifically
+  // Primary: Use JSON structured extraction if available
   let category = '';
-  if (url.includes('triumph.com')) {
-    // Try to extract from title/metadata first
-    const title = scrapedData.metadata?.title || scrapedData.title || '';
-    const description = scrapedData.metadata?.description || scrapedData.description || '';
+  let imageUrls: string[] = [];
+  
+  if (scrapedData.json) {
+    console.log('Using Firecrawl JSON structured extraction...');
+    console.log('JSON data:', scrapedData.json);
     
-    // Look for product type in title or description
-    const combinedText = `${title} ${description}`.toLowerCase();
-    
-    if (combinedText.includes('non-wired bra') || combinedText.includes('wireless bra')) {
-      category = 'Non-wired bra';
-    } else if (combinedText.includes('wired bra') || combinedText.includes('underwire bra')) {
-      category = 'Wired bra';
-    } else if (combinedText.includes('bra') && combinedText.includes('sport')) {
-      category = 'Sports bra';
-    } else if (combinedText.includes('bra')) {
-      category = 'Bra';
-    } else if (combinedText.includes('knickers') || combinedText.includes('brief') || combinedText.includes('panty')) {
-      category = 'Knickers';
-    } else if (combinedText.includes('bodysuit') || combinedText.includes('body')) {
-      category = 'Bodysuit';
+    // Extract category from JSON if present
+    if (scrapedData.json.category) {
+      category = normalizeCategory(scrapedData.json.category);
+      console.log(`Extracted category from JSON: "${category}"`);
     }
     
-    console.log(`Extracted category from metadata: "${category}" from title/desc: "${title}" / "${description}"`);
+    // Extract images from JSON if present
+    if (scrapedData.json.images && Array.isArray(scrapedData.json.images)) {
+      imageUrls = scrapedData.json.images.slice(0, 8);
+      console.log(`Extracted ${imageUrls.length} images from JSON`);
+    }
   }
   
-  // Fallback to original method if no category found
+  // Fallback: Use precise HTML extraction for Triumph
+  if (!category || imageUrls.length === 0) {
+    console.log('Falling back to precise HTML extraction...');
+    if (url.includes('triumph.com') && scrapedData.html) {
+      const $ = cheerio.load(scrapedData.html);
+      
+      if (!category) {
+        category = getCategoryTriumph($);
+        console.log(`Extracted category from HTML: "${category}"`);
+      }
+      
+      if (imageUrls.length === 0) {
+        const productId = getProductId(url);
+        if (productId) {
+          imageUrls = getImagesTriumph(scrapedData.html, productId);
+          console.log(`Extracted ${imageUrls.length} images from HTML for product ${productId}`);
+        }
+      }
+    }
+  }
+  
+  // Final fallback: Use original extraction methods
   if (!category) {
     category = extractCategoryFromData(scrapedData);
   }
-  
-  // Enhanced image extraction for Triumph using Firecrawl metadata
-  let imageUrls: string[] = [];
-  
-  if (url.includes('triumph.com') && scrapedData.metadata?.image) {
-    console.log(`Firecrawl found ${scrapedData.metadata.image.length} images for Triumph`);
-    
-    // Extract product ID from URL
-    const productIdMatch = url.match(/\/(\d+)\.html/);
-    const productId = productIdMatch ? productIdMatch[1] : null;
-    
-    if (productId) {
-      // Filter images to get only the main product images
-      // Based on the data you shared, let's try multiple patterns
-      const productImages = scrapedData.metadata.image.filter((img: string) => 
-        img.includes('contentstore.triumph.com') && (
-          img.includes(`30_${productId}_`) ||           // Standard pattern
-          img.includes(`_${productId}_`) ||             // Alternative pattern  
-          img.includes(`${productId}`)                  // Basic product ID match
-        )
-      );
-      
-      console.log(`Found ${productImages.length} product images for ID ${productId}`);
-      if (productImages.length > 0) {
-        console.log('Product images found:', productImages.slice(0, 3).map(img => img.substring(img.lastIndexOf('/') + 1)));
-      }
-      
-      // Prioritize main carousel patterns (viewType > 1000) and primary images
-      const mainCarouselImages = productImages.filter((img: string) => {
-        const viewTypeMatch = img.match(/_(\d{4})_/);
-        if (viewTypeMatch) {
-          const viewType = parseInt(viewTypeMatch[1]);
-          return viewType > 1000; // Main carousel patterns like 6106, 4505, etc.
-        }
-        return false;
-      });
-      
-      if (mainCarouselImages.length > 0) {
-        console.log(`Using ${mainCarouselImages.length} main carousel images from Firecrawl`);
-        imageUrls = mainCarouselImages.slice(0, 8); // Limit to 8 images
-      } else if (productImages.length > 0) {
-        // Fallback to other product images, but remove duplicates
-        const uniqueProductImages = [...new Set(productImages)];
-        console.log(`No main carousel found, using ${uniqueProductImages.length} unique product images from Firecrawl`);
-        imageUrls = uniqueProductImages.slice(0, 6);
-      } else {
-        // Last resort: check for any images that might be variants 
-        console.log('No direct product images found, checking for variants...');
-        const variantImages = scrapedData.metadata.image.filter((img: string) => 
-          img.includes('contentstore.triumph.com') && 
-          (img.includes(`_${productId}_`) || img.includes('transform/'))
-        );
-        console.log(`Found ${variantImages.length} potential variant images`);
-        imageUrls = variantImages.slice(0, 6);
-      }
-      
-      // Convert to higher quality images
-      imageUrls = imageUrls.map(img => 
-        img.replace(/width:\d+,height:\d+/, 'width:688,height:909')
-           .replace(/width=\d+&height=\d+/, 'width=688&height=909')
-      );
-    } else {
-      // Fallback to all Triumph images if no product ID found
-      const triumphImages = scrapedData.metadata.image.filter((img: string) => 
-        img.includes('contentstore.triumph.com')
-      );
-      console.log(`Using ${triumphImages.length} general Triumph images as fallback`);
-      imageUrls = triumphImages.slice(0, 10);
-    }
-  } else {
-    // For non-Triumph sites, use the original logic
-    imageUrls = extractImageUrlsFromData(scrapedData);
+  if (imageUrls.length === 0) {
+    imageUrls = extractImageUrlsFromData(scrapedData, url);
   }
 
   const images = await processImages(imageUrls);
@@ -313,13 +270,74 @@ function mapLanguageCode(code: string): string {
   return mapping[code] || 'en';
 }
 
+function normalizeCategory(raw: string): string {
+  const map: Record<string, string> = {
+    // Triumph categories normalization
+    'minimizer bra': 'Minimizer bra',
+    'wired bra': 'Wired bra',
+    'non-wired bra': 'Non-wired bra',
+    'sports bra': 'Sports bra',
+    'push-up bra': 'Push-up bra',
+    'tai knickers': 'Knickers',
+    'brief': 'Brief',
+    'slip': 'Slip',
+    'bodysuit': 'Bodysuit',
+    'body': 'Bodysuit',
+    'knickers': 'Knickers',
+    'panty': 'Knickers',
+    'underwear': 'Underwear',
+    'lingerie': 'Lingerie'
+  };
+  const key = raw.toLowerCase();
+  return map[key] ?? raw;   // if not mapped, keep original
+}
+
+function getProductId(url: string): string | null {
+  const m = url.match(/\/(\d+)\.html/);
+  return m ? m[1] : null;
+}
+
+function getImagesTriumph(html: string, productId: string): string[] {
+  const $ = cheerio.load(html);
+
+  // Take <img> and <source> (srcset) only inside the correct container
+  const srcs: string[] = [];
+  $('.pdp__imageContainer img, .pdp__imageContainer source').each((_, el) => {
+    const src = $(el).attr('src') || $(el).attr('data-src');
+    const srcset = $(el).attr('srcset') || $(el).attr('data-srcset');
+
+    [src, ...(srcset ? srcset.split(',') : [])].forEach(raw => {
+      const url = raw?.trim().split(' ')[0];      // remove dimensions
+      if (url && url.includes(`_${productId}_`) && !srcs.includes(url)) {
+        srcs.push(url.replace(/width:\d+,height:\d+/g, 'width:688,height:909')  // high quality
+                     .replace(/width=\d+&height=\d+/g, 'width=688&height=909'));
+      }
+    });
+  });
+
+  return srcs.slice(0, 8); // maximum 8 images
+}
+
+function getCategoryTriumph($: cheerio.CheerioAPI): string {
+  // 1) visible text (removes the <meta>)
+  const headline = $('.headline.headline--h9-rs').first();
+  const textCat = headline.clone().find('meta').remove().end().text().trim();
+  if (textCat) return normalizeCategory(textCat);
+
+  // 2) fallback to meta
+  const metaCat = headline.find('meta[itemprop="description"]').attr('content');
+  if (metaCat) return normalizeCategory(metaCat);
+
+  return '';
+}
+
 function extractCategoryFromData(scrapedData: any): string {
   // Try to find in markdown content using regex for the specific div
   if (scrapedData && scrapedData.markdown) {
     // Look for headline--h9-rs class
     const headlineMatch = scrapedData.markdown.match(/headline--h9-rs[^>]*>([^<]+)/i);
     if (headlineMatch && headlineMatch[1]) {
-      return headlineMatch[1].trim();
+      return normalizeCategory(headlineMatch[1].trim());
     }
     
     // Alternative patterns for product categories
@@ -332,7 +350,7 @@ function extractCategoryFromData(scrapedData: any): string {
     for (const pattern of categoryPatterns) {
       const match = scrapedData.markdown.match(pattern);
       if (match && match[1]) {
-        return match[1].trim();
+        return normalizeCategory(match[1].trim());
       }
     }
   }
@@ -343,45 +361,36 @@ function extractCategoryFromData(scrapedData: any): string {
 function extractCategoryBasic($: cheerio.CheerioAPI): string {
   console.log('=== Precise category extraction ===');
   
-  // PRECISE: Extract from the exact structure you specified
-  // <div class="headline headline--h9-rs">
-  //   Minimizer bra
-  //   <meta itemprop="description" content="Minimizer bra">
-  // </div>
-  
-  // Method 1: Get text content from the headline div (excluding nested meta tag)
-  const headlineDiv = $('.headline.headline--h9-rs').first();
-  if (headlineDiv.length > 0) {
-    // Get text content but exclude meta tag content
-    const $clone = headlineDiv.clone();
-    $clone.find('meta').remove(); // Remove meta tag from clone
-    const categoryText = $clone.text().trim();
-    
-    if (categoryText) {
-      console.log(`Found category from headline div text: "${categoryText}"`);
-      return categoryText;
-    }
+  // Use specialized Triumph extraction
+  const triumphCategory = getCategoryTriumph($);
+  if (triumphCategory) {
+    console.log(`Found Triumph category: "${triumphCategory}"`);
+    return triumphCategory;
   }
   
-  // Method 2: Get from meta itemprop="description" content inside the headline div
-  const metaInHeadline = $('.headline.headline--h9-rs meta[itemprop="description"]').attr('content');
-  if (metaInHeadline && metaInHeadline.trim()) {
-    console.log(`Found category from meta description in headline: "${metaInHeadline.trim()}"`);
-    return metaInHeadline.trim();
+  // Fallback to general meta description for non-Triumph sites
+  const generalMeta = $('meta[name="description"]').attr('content');
+  if (generalMeta) {
+    console.log(`Using general meta description: "${generalMeta}"`);
+    return normalizeCategory(generalMeta);
   }
   
-  // Method 3: Fallback to any meta itemprop="description"
-  const metaDescription = $('meta[itemprop="description"]').attr('content');
-  if (metaDescription && metaDescription.trim()) {
-    console.log(`Found category from general meta description: "${metaDescription.trim()}"`);
-    return metaDescription.trim();
-  }
-  
-  console.log('No category found with precise extraction');
+  console.log('No category found');
   return '';
 }
 
-function extractImageUrlsFromData(scrapedData: any): string[] {
+function extractImageUrlsFromData(scrapedData: any, url?: string): string[] {
+  // Use specialized Triumph extraction if applicable
+  if (url && url.includes('triumph.com')) {
+    const productId = getProductId(url);
+    if (productId && scrapedData.html) {
+      const triumphImages = getImagesTriumph(scrapedData.html, productId);
+      console.log(`Found ${triumphImages.length} Triumph images for product ${productId}`);
+      return triumphImages;
+    }
+  }
+  
+  // Fallback to generic extraction for non-Triumph sites
   const imageUrls: string[] = [];
   const seenUrls = new Set<string>();
   
