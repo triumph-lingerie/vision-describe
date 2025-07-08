@@ -1,3 +1,4 @@
+import FirecrawlApp from '@mendable/firecrawl-js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -13,52 +14,99 @@ export interface CrawlResult {
   }>;
   title?: string;
   description?: string;
+  markdown?: string;
 }
+
+// Initialize Firecrawl
+const app = new FirecrawlApp({
+  apiKey: process.env.FIRECRAWL_API_KEY
+});
 
 export async function crawlProductPage(url: string): Promise<CrawlResult> {
-  try {
-    console.log(`Crawling URL: ${url}`);
-    
-    // Fetch the page
-    const response = await axios.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      },
-      timeout: 10000
-    });
-
-    const $ = cheerio.load(response.data);
-    
-    // Detect language from URL, html lang attribute, or meta tags
-    const language = detectLanguage(url, $);
-    
-    // Extract product category from the specific div element
-    const category = extractCategory($);
-    
-    // Extract product images
-    const images = await extractImages($, url);
-    
-    // Extract title and description
-    const title = $('title').text().trim() || $('h1').first().text().trim();
-    const description = $('meta[name="description"]').attr('content') || '';
-
-    console.log(`Crawl completed - Language: ${language}, Category: ${category}, Images: ${images.length}`);
-
-    return {
-      url,
-      language,
-      category,
-      images,
-      title,
-      description
-    };
-  } catch (error) {
-    console.error('Error crawling page:', error);
-    throw new Error(`Failed to crawl page: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
+  // For now, use basic crawling method for reliability
+  // TODO: Fix Firecrawl integration later
+  console.log(`Using basic crawling for URL: ${url}`);
+  return await crawlWithBasicMethod(url);
 }
 
-function detectLanguage(url: string, $: cheerio.CheerioAPI): string {
+async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
+  const scrapeResult = await app.scrapeUrl(url);
+  
+  if (!scrapeResult.success) {
+    throw new Error(`Firecrawl failed: ${scrapeResult.error}`);
+  }
+
+  // Firecrawl v1 returns data directly in the response object
+  const scrapedData = scrapeResult.data || scrapeResult;
+  
+  console.log('Firecrawl successful, processing data...');
+  console.log('Available data:', {
+    hasMarkdown: !!scrapedData.markdown,
+    hasMetadata: !!scrapedData.metadata,
+    markdownLength: scrapedData.markdown?.length || 0
+  });
+
+  const language = detectLanguageFromData(url, scrapedData);
+  const category = extractCategoryFromData(scrapedData);
+  const imageUrls = extractImageUrlsFromData(scrapedData);
+  const images = await processImages(imageUrls);
+  
+  return {
+    url,
+    language,
+    category,
+    images,
+    title: scrapedData.metadata?.title || 'Product',
+    description: scrapedData.metadata?.description || '',
+    markdown: scrapedData.markdown
+  };
+}
+
+async function crawlWithBasicMethod(url: string): Promise<CrawlResult> {
+  const response = await axios.get(url, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    },
+    timeout: 10000
+  });
+
+  const $ = cheerio.load(response.data);
+  
+  const language = detectLanguageBasic(url, $);
+  const category = extractCategoryBasic($);
+  const imageUrls = extractImagesBasic($, url);
+  const images = await processImages(imageUrls);
+  
+  const title = $('title').text().trim() || $('h1').first().text().trim() || 'Product';
+  const description = $('meta[name="description"]').attr('content') || '';
+
+  console.log(`Basic crawl completed - Language: ${language}, Category: ${category}, Images: ${images.length}`);
+
+  return {
+    url,
+    language,
+    category,
+    images,
+    title,
+    description
+  };
+}
+
+function detectLanguageFromData(url: string, scrapedData: any): string {
+  // Try to detect from URL first
+  const urlLanguage = extractLanguageFromUrl(url);
+  if (urlLanguage) return urlLanguage;
+  
+  // Try from metadata
+  if (scrapedData.metadata?.language) {
+    return mapLanguageCode(scrapedData.metadata.language);
+  }
+  
+  // Default to English
+  return 'en';
+}
+
+function detectLanguageBasic(url: string, $: cheerio.CheerioAPI): string {
   // Try to detect from URL
   const urlLanguage = extractLanguageFromUrl(url);
   if (urlLanguage) return urlLanguage;
@@ -119,7 +167,34 @@ function mapLanguageCode(code: string): string {
   return mapping[code] || 'en';
 }
 
-function extractCategory($: cheerio.CheerioAPI): string {
+function extractCategoryFromData(scrapedData: any): string {
+  // Try to find in markdown content using regex for the specific div
+  if (scrapedData && scrapedData.markdown) {
+    // Look for headline--h9-rs class
+    const headlineMatch = scrapedData.markdown.match(/headline--h9-rs[^>]*>([^<]+)/i);
+    if (headlineMatch && headlineMatch[1]) {
+      return headlineMatch[1].trim();
+    }
+    
+    // Alternative patterns for product categories
+    const categoryPatterns = [
+      /category[^>]*>([^<]+)/i,
+      /product-type[^>]*>([^<]+)/i,
+      /breadcrumb[^>]*>.*?([^>]+)<\/[^>]*>$/i
+    ];
+    
+    for (const pattern of categoryPatterns) {
+      const match = scrapedData.markdown.match(pattern);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+  }
+  
+  return '';
+}
+
+function extractCategoryBasic($: cheerio.CheerioAPI): string {
   // Look for the specific div class mentioned by the user
   const categoryFromDiv = $('.headline.headline--h9-rs').text().trim();
   if (categoryFromDiv) return categoryFromDiv;
@@ -142,14 +217,64 @@ function extractCategory($: cheerio.CheerioAPI): string {
   return '';
 }
 
-async function extractImages($: cheerio.CheerioAPI, baseUrl: string): Promise<Array<{url: string, alt?: string, base64?: string, mimeType?: string}>> {
-  const images: Array<{url: string, alt?: string, base64?: string, mimeType?: string}> = [];
+function extractImageUrlsFromData(scrapedData: any): string[] {
+  const imageUrls: string[] = [];
   const seenUrls = new Set<string>();
   
-  // Common selectors for product images
+  // Extract from markdown using regex for image URLs
+  if (scrapedData && scrapedData.markdown) {
+    const markdownImageRegex = /!\[[^\]]*\]\(([^)]+)\)/g;
+    let match;
+    while ((match = markdownImageRegex.exec(scrapedData.markdown)) !== null) {
+      let url = match[1];
+      
+      // Convert relative URLs to absolute
+      if (url.startsWith('//')) {
+        url = 'https:' + url;
+      } else if (url.startsWith('/')) {
+        url = 'https://uk.triumph.com' + url; // Base domain for Triumph
+      }
+      
+      if (url.startsWith('http') && !seenUrls.has(url)) {
+        seenUrls.add(url);
+        imageUrls.push(url);
+      }
+    }
+  }
+  
+  // Also try to extract from HTML content if available
+  if (scrapedData && scrapedData.html) {
+    const imgTagRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+    let match;
+    while ((match = imgTagRegex.exec(scrapedData.html)) !== null) {
+      let url = match[1];
+      
+      // Convert relative URLs to absolute
+      if (url.startsWith('//')) {
+        url = 'https:' + url;
+      } else if (url.startsWith('/')) {
+        url = 'https://uk.triumph.com' + url;
+      }
+      
+      if (url.startsWith('http') && !seenUrls.has(url) && url.includes('product')) {
+        seenUrls.add(url);
+        imageUrls.push(url);
+      }
+    }
+  }
+  
+  console.log(`Found ${imageUrls.length} image URLs`);
+  return imageUrls.slice(0, 10); // Limit to 10 images
+}
+
+function extractImagesBasic($: cheerio.CheerioAPI, baseUrl: string): string[] {
+  const imageUrls: string[] = [];
+  const seenUrls = new Set<string>();
+  
+  // Common selectors for product images - prioritize main product images
   const selectors = [
     '.product-images img',
-    '.product-gallery img',
+    '.product-gallery img', 
     '.product-photo img',
     '.product-image img',
     '[data-product-image] img',
@@ -157,7 +282,9 @@ async function extractImages($: cheerio.CheerioAPI, baseUrl: string): Promise<Ar
     '.carousel img',
     '.slider img',
     'img[src*="product"]',
-    'img[alt*="product"]'
+    'img[alt*="product"]',
+    'img[src*="contentstore"]', // For Triumph-specific CDN
+    'img[src*="triumph"]'
   ];
   
   for (const selector of selectors) {
@@ -166,6 +293,14 @@ async function extractImages($: cheerio.CheerioAPI, baseUrl: string): Promise<Ar
       let src = $img.attr('src') || $img.attr('data-src') || $img.attr('data-lazy');
       
       if (!src) return;
+      
+      console.log(`Found image with selector ${selector}: ${src.substring(0, 80)}...`);
+      
+      // Skip data URLs (inline images, usually placeholders)
+      if (src.startsWith('data:')) {
+        console.log(`Skipping data URL found by ${selector}`);
+        return;
+      }
       
       // Convert relative URLs to absolute
       if (src.startsWith('//')) {
@@ -178,46 +313,102 @@ async function extractImages($: cheerio.CheerioAPI, baseUrl: string): Promise<Ar
       }
       
       // Skip if we've already seen this URL
-      if (seenUrls.has(src)) return;
+      if (seenUrls.has(src)) {
+        console.log(`Skipping duplicate URL: ${src}`);
+        return;
+      }
       seenUrls.add(src);
       
       // Skip small images (likely thumbnails or icons)
       const width = parseInt($img.attr('width') || '0');
       const height = parseInt($img.attr('height') || '0');
-      if ((width > 0 && width < 100) || (height > 0 && height < 100)) return;
+      if ((width > 0 && width < 100) || (height > 0 && height < 100)) {
+        console.log(`Skipping small image: ${src} (${width}x${height})`);
+        return;
+      }
       
-      const alt = $img.attr('alt') || '';
-      images.push({ url: src, alt });
+      console.log(`Adding valid image URL: ${src}`);
+      imageUrls.push(src);
     });
   }
   
-  // Convert images to base64 for OpenAI
+  console.log(`Basic extraction found ${imageUrls.length} image URLs`);
+  return imageUrls.slice(0, 10); // Limit to 10 images
+}
+
+async function processImages(imageUrls: string[]): Promise<Array<{url: string, alt?: string, base64?: string, mimeType?: string}>> {
+  // Filter out data URLs and invalid URLs upfront
+  const validUrls = imageUrls.filter(url => {
+    if (url.startsWith('data:')) {
+      console.log(`Skipping data URL: ${url.substring(0, 50)}...`);
+      return false;
+    }
+    if (!url.startsWith('http')) {
+      console.log(`Skipping invalid URL: ${url}`);
+      return false;
+    }
+    return true;
+  });
+  
+  console.log(`Processing ${validUrls.length} valid images from ${imageUrls.length} found...`);
+  
   const processedImages = await Promise.all(
-    images.slice(0, 10).map(async (img) => { // Limit to 10 images
+    validUrls.map(async (url) => {
       try {
-        const response = await axios.get(img.url, {
+        const response = await axios.get(url, {
           responseType: 'arraybuffer',
-          timeout: 5000,
+          timeout: 10000,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
           }
         });
         
         const contentType = response.headers['content-type'] || 'image/jpeg';
-        if (!contentType.startsWith('image/')) return img;
+        if (!contentType.startsWith('image/')) {
+          console.log(`Skipping non-image URL: ${url}`);
+          return null;
+        }
         
-        const base64 = Buffer.from(response.data).toString('base64');
+        const buffer = Buffer.from(response.data);
+        const base64 = buffer.toString('base64');
+        
+        // Enhanced filtering for placeholder and tiny images
+        if (buffer.length < 2000) {
+          console.log(`Skipping small image: ${url} (${buffer.length} bytes)`);
+          return null;
+        }
+        
+        // Check for common placeholder patterns
+        if (base64.startsWith('R0lGODlhAQABAAD') || // 1x1 transparent GIF
+            base64.startsWith('R0lGODdhAQABAPAA') || // Another 1x1 GIF pattern
+            base64.startsWith('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==')) { // 1x1 PNG
+          console.log(`Skipping placeholder image: ${url}`);
+          return null;
+        }
+        
+        // Validate proper image formats for OpenAI
+        if (!contentType.includes('jpeg') && !contentType.includes('jpg') && 
+            !contentType.includes('png') && !contentType.includes('webp')) {
+          console.log(`Skipping unsupported image format: ${url} (${contentType})`);
+          return null;
+        }
+        
+        console.log(`Successfully processed image: ${url} (${Math.round(buffer.length/1024)}KB)`);
+        
         return {
-          ...img,
+          url,
           base64,
           mimeType: contentType
         };
       } catch (error) {
-        console.log(`Failed to fetch image ${img.url}:`, error instanceof Error ? error.message : 'Unknown error');
-        return img; // Return without base64 if fetch fails
+        console.log(`Failed to fetch image ${url}:`, error instanceof Error ? error.message : 'Unknown error');
+        return null;
       }
     })
   );
   
-  return processedImages.filter(img => img.base64); // Only return images we successfully processed
+  const validImages = processedImages.filter(img => img !== null) as Array<{url: string, alt?: string, base64?: string, mimeType?: string}>;
+  console.log(`Successfully processed ${validImages.length} out of ${validUrls.length} images`);
+  
+  return validImages;
 }
