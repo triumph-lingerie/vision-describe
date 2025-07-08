@@ -55,7 +55,7 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-medium text-foreground mb-2">
-            Generate professional e-commerce descriptions from uploaded images or by crawling product URLs
+            Professional e-commerce descriptions from images and URLs
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
             Transform product images into compelling marketing content for your e-commerce store. Upload photos directly or crawl existing product pages to enhance descriptions with AI-powered visual analysis.
