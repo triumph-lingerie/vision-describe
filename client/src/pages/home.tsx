@@ -73,7 +73,7 @@ export default function Home() {
                   <div className="space-y-4">
                     <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
                       <Plus className="h-4 w-4" />
-                      Upload Images Method
+                      Create New Method
                     </h3>
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
