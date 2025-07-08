@@ -354,15 +354,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-2">
               <p className="text-sm text-muted-foreground">
-                Powered by{" "}
-                <a
-                  href="https://openai.com/index/gpt-4v-system-card/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium text-foreground hover:text-primary transition-colors duration-150"
-                >
-                  GPT-4 Vision
-                </a>
+                Copyright Vision Describe 2025
               </p>
             </div>
 

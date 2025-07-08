@@ -8,7 +8,7 @@ export function Header() {
           <Logo size="md" />
           
           <div className="text-sm text-muted-foreground">
-            AI-powered product descriptions
+            Powered by OpenAI
           </div>
         </div>
       </div>
