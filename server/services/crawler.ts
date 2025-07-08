@@ -17,7 +17,7 @@ export interface CrawlResult {
   markdown?: string;
 }
 
-// Initialize Firecrawl
+// Initialize Firecrawl with longer timeout
 const app = new FirecrawlApp({
   apiKey: process.env.FIRECRAWL_API_KEY
 });
@@ -25,12 +25,17 @@ const app = new FirecrawlApp({
 export async function crawlProductPage(url: string): Promise<CrawlResult> {
   console.log(`Starting crawl for URL: ${url}`);
   
-  // Try Firecrawl first for better image extraction, especially for Triumph
+  // Try Firecrawl first for better image extraction, but with timeout protection
+  const firecrawlPromise = crawlWithFirecrawl(url);
+  const timeoutPromise = new Promise<never>((_, reject) => 
+    setTimeout(() => reject(new Error('Firecrawl timeout after 15 seconds')), 15000)
+  );
+  
   try {
-    console.log('Attempting Firecrawl extraction first...');
-    return await crawlWithFirecrawl(url);
+    console.log('Attempting Firecrawl extraction with 15s timeout...');
+    return await Promise.race([firecrawlPromise, timeoutPromise]);
   } catch (error) {
-    console.log('Firecrawl failed, falling back to basic method:', error);
+    console.log('Firecrawl failed or timed out, using basic method:', error.message || error);
     return await crawlWithBasicMethod(url);
   }
 }
@@ -336,61 +341,43 @@ function extractCategoryFromData(scrapedData: any): string {
 }
 
 function extractCategoryBasic($: cheerio.CheerioAPI): string {
-  console.log('=== Category extraction debug ===');
+  console.log('=== Precise category extraction ===');
   
-  // Find ALL divs and debug them
-  $('div').each((i, elem) => {
-    const $elem = $(elem);
-    const classes = $elem.attr('class') || '';
-    const text = $elem.text().trim();
+  // PRECISE: Extract from the exact structure you specified
+  // <div class="headline headline--h9-rs">
+  //   Minimizer bra
+  //   <meta itemprop="description" content="Minimizer bra">
+  // </div>
+  
+  // Method 1: Get text content from the headline div (excluding nested meta tag)
+  const headlineDiv = $('.headline.headline--h9-rs').first();
+  if (headlineDiv.length > 0) {
+    // Get text content but exclude meta tag content
+    const $clone = headlineDiv.clone();
+    $clone.find('meta').remove(); // Remove meta tag from clone
+    const categoryText = $clone.text().trim();
     
-    // Only log divs that might contain product info
-    if ((classes.includes('headline') || text.includes('Non-wired') || text.includes('bra')) && text.length > 0 && text.length < 50) {
-      console.log(`DIV ${i}: class="${classes}", text="${text}"`);
+    if (categoryText) {
+      console.log(`Found category from headline div text: "${categoryText}"`);
+      return categoryText;
     }
-  });
+  }
   
-  // Try meta description first for cleaner product type
+  // Method 2: Get from meta itemprop="description" content inside the headline div
+  const metaInHeadline = $('.headline.headline--h9-rs meta[itemprop="description"]').attr('content');
+  if (metaInHeadline && metaInHeadline.trim()) {
+    console.log(`Found category from meta description in headline: "${metaInHeadline.trim()}"`);
+    return metaInHeadline.trim();
+  }
+  
+  // Method 3: Fallback to any meta itemprop="description"
   const metaDescription = $('meta[itemprop="description"]').attr('content');
   if (metaDescription && metaDescription.trim()) {
-    console.log(`Found category from meta description: ${metaDescription.trim()}`);
+    console.log(`Found category from general meta description: "${metaDescription.trim()}"`);
     return metaDescription.trim();
   }
   
-  // Look for the specific div class mentioned by the user  
-  const categoryFromDiv = $('.headline.headline--h9-rs').first().text().trim();
-  if (categoryFromDiv) {
-    console.log(`Found category from headline--h9-rs: ${categoryFromDiv}`);
-    return categoryFromDiv;
-  }
-  
-  // Try different variations of headline selectors
-  const headlineVariations = [
-    '.headline--h9-rs',
-    'div.headline.headline--h9-rs', 
-    '.headline.headline--h9-rs',
-    '[class*="headline--h9-rs"]'
-  ];
-  
-  for (const selector of headlineVariations) {
-    const text = $(selector).first().text().trim();
-    if (text) {
-      console.log(`Found category from headline variation ${selector}: ${text}`);
-      return text;
-    }
-  }
-  
-  // Look for any element containing "Non-wired bra" specifically
-  const nonWiredElements = $('*:contains("Non-wired bra")');
-  if (nonWiredElements.length > 0) {
-    const text = nonWiredElements.first().text().trim();
-    if (text.length < 100) { // Avoid getting long descriptions
-      console.log(`Found category from Non-wired bra search: ${text}`);
-      return text;
-    }
-  }
-  
-  console.log('No category found');
+  console.log('No category found with precise extraction');
   return '';
 }
 
@@ -446,189 +433,90 @@ function extractImageUrlsFromData(scrapedData: any): string[] {
 
 function extractImagesBasic($: cheerio.CheerioAPI, baseUrl: string): string[] {
   const imageUrls: string[] = [];
-  const seenUrls = new Set<string>();
   
-  // Common selectors for product images - prioritize main product images
-  // Start with Triumph-specific selectors first
-  const selectors = [
-    '.pdp__imageContainer.js-tileImageCarousel img', // Triumph-specific product image container
-    '.js-tileImageCarousel img',
-    '.pdp__imageContainer img',
-    '.product-images img',
-    '.product-gallery img', 
-    '.product-photo img',
-    '.product-image img',
-    '[data-product-image] img',
-    '.gallery img',
-    'img[src*="contentstore"]', // For Triumph-specific CDN - prioritize actual product images
-    'img[alt*="product"]'
+  console.log('=== Precise image extraction from main product image ===');
+  
+  // PRECISION: Extract only the main product image as suggested
+  // <img class="image-shadow pdp__mainImage carousel__image js-zoom" src="..." />
+  const mainImageSelectors = [
+    '.pdp__mainImage.carousel__image.js-zoom',           // Exact class combination
+    'img.pdp__mainImage.carousel__image',                // Alternative without js-zoom
+    '.pdp__mainImage',                                   // Fallback to main image
+    '.carousel__image.js-zoom'                           // Alternative combination
   ];
   
-  for (const selector of selectors) {
-    $(selector).each((_, element) => {
+  for (const selector of mainImageSelectors) {
+    const mainImage = $(selector).first();
+    if (mainImage.length > 0) {
+      let src = mainImage.attr('src');
+      
+      if (src && !src.startsWith('data:')) {
+        // Convert relative to absolute URL
+        if (src.startsWith('//')) {
+          src = 'https:' + src;
+        } else if (src.startsWith('/')) {
+          const urlObj = new URL(baseUrl);
+          src = `${urlObj.protocol}//${urlObj.host}${src}`;
+        }
+        
+        console.log(`Found main product image with ${selector}: ${src}`);
+        imageUrls.push(src);
+        
+        // Generate additional views from main image pattern (for variety)
+        if (src.includes('contentstore.triumph.com')) {
+          const productMatch = src.match(/(\d+_\d+_\d+_)(\d+)/);
+          if (productMatch) {
+            const basePattern = productMatch[1]; // e.g., "30_10215848_7539_"
+            const currentView = parseInt(productMatch[2]); // e.g., 1
+            
+            // Generate 2-3 additional views for product variety
+            for (let i = 2; i <= 4; i++) {
+              if (i !== currentView) {
+                const variantSrc = src.replace(`${basePattern}${currentView}`, `${basePattern}${i}`);
+                imageUrls.push(variantSrc);
+                console.log(`Generated variant view ${i}: ${variantSrc}`);
+              }
+            }
+          }
+        }
+        
+        console.log(`Extracted ${imageUrls.length} images from main product image`);
+        return imageUrls; // Return immediately after finding main image
+      }
+    }
+  }
+  
+  // FALLBACK: If no main image found, try carousel extraction (limited)
+  console.log('Main product image not found, trying carousel fallback...');
+  
+  const fallbackSelectors = [
+    '.pdp__imageContainer.js-tileImageCarousel img',
+    '.js-tileImageCarousel img'
+  ];
+  
+  for (const selector of fallbackSelectors) {
+    $(selector).first().each((_, element) => {
       const $img = $(element);
-      let src = $img.attr('src') || $img.attr('data-src') || $img.attr('data-lazy');
+      let src = $img.attr('src');
       
-      if (!src) return;
-      
-      console.log(`Found image with selector ${selector}: ${src.substring(0, 80)}...`);
-      
-      // Skip data URLs (inline images, usually placeholders)
-      if (src.startsWith('data:')) {
-        console.log(`Skipping data URL found by ${selector}`);
-        return;
-      }
-      
-      // Convert relative URLs to absolute
-      if (src.startsWith('//')) {
-        src = 'https:' + src;
-      } else if (src.startsWith('/')) {
-        const urlObj = new URL(baseUrl);
-        src = `${urlObj.protocol}//${urlObj.host}${src}`;
-      } else if (!src.startsWith('http')) {
-        src = new URL(src, baseUrl).href;
-      }
-      
-      // For Triumph carousel images, check if this is a different view/angle
-      const isTriumphCarousel = src.includes('contentstore.triumph.com');
-      
-      if (isTriumphCarousel) {
-        // For Triumph, extract the image identifier from the URL
-        // Example: 30_10135874_0003_4.jpg means: pattern_product_view_variant
-        const imageMatch = src.match(/(\d+_\d+_\d+_\d+)/);
-        const imageId = imageMatch ? imageMatch[1] : src;
+      if (src && !src.startsWith('data:')) {
+        if (src.startsWith('//')) {
+          src = 'https:' + src;
+        } else if (src.startsWith('/')) {
+          const urlObj = new URL(baseUrl);
+          src = `${urlObj.protocol}//${urlObj.host}${src}`;
+        }
         
-        if (seenUrls.has(imageId)) {
-          console.log(`Skipping duplicate Triumph image variant: ${src}`);
-          return;
-        }
-        seenUrls.add(imageId);
-        console.log(`Added unique Triumph image variant: ${imageId}`);
-      } else {
-        // For non-Triumph sites, use base URL duplicate checking
-        const baseUrl = src.split('?')[0];
-        if (seenUrls.has(baseUrl)) {
-          console.log(`Skipping duplicate URL: ${src}`);
-          return;
-        }
-        seenUrls.add(baseUrl);
+        console.log(`Found fallback image: ${src}`);
+        imageUrls.push(src);
       }
-      
-      // Skip small images (likely thumbnails or icons)
-      const width = parseInt($img.attr('width') || '0');
-      const height = parseInt($img.attr('height') || '0');
-      if ((width > 0 && width < 100) || (height > 0 && height < 100)) {
-        console.log(`Skipping small image: ${src} (${width}x${height})`);
-        return;
-      }
-      
-      // Skip banner/promotional images for better product focus
-      if (src.includes('banner') || src.includes('promo') || src.includes('sloggi') || 
-          src.includes('brand') || src.includes('logo')) {
-        console.log(`Skipping promotional/banner image: ${src}`);
-        return;
-      }
-      
-      console.log(`Adding valid image URL: ${src}`);
-      imageUrls.push(src);
     });
+    
+    if (imageUrls.length > 0) break; // Stop after finding first valid image
   }
   
-  // For Triumph, extract real carousel images from all product types
-  if (baseUrl.includes('triumph.com')) {
-    console.log('Extracting Triumph main product carousel images...');
-    
-    const htmlContent = $.html();
-    
-    // Extract product ID from URL or existing images
-    let productId = null;
-    const urlMatch = baseUrl.match(/\/(\d+)\.html/);
-    if (urlMatch) {
-      productId = urlMatch[1];
-    } else if (imageUrls.length > 0) {
-      const imgMatch = imageUrls[0].match(/30_(\d+)_/);
-      if (imgMatch) {
-        productId = imgMatch[1];
-      }
-    }
-    
-    if (productId) {
-      console.log(`Searching for product ID ${productId} main carousel patterns...`);
-      
-      // Search for all possible main carousel patterns for this product
-      const carouselPatterns = htmlContent.match(new RegExp(`30_${productId}_\\d{4}_\\d+\\.(?:jpg|png)`, 'g'));
-      
-      if (carouselPatterns) {
-        const uniquePatterns = [...new Set(carouselPatterns)];
-        console.log(`Found main carousel patterns: ${uniquePatterns.join(', ')}`);
-        
-        // Find the main carousel pattern (usually higher numbers like 6106, 4505, etc.)
-        const mainPattern = uniquePatterns.find(p => {
-          const viewTypeMatch = p.match(/_(\d{4})_/);
-          if (viewTypeMatch) {
-            const viewType = parseInt(viewTypeMatch[1]);
-            return viewType > 1000; // Main carousel patterns are usually > 1000
-          }
-          return false;
-        });
-        
-        if (mainPattern) {
-          console.log(`Using main carousel pattern: ${mainPattern}`);
-          
-          // Get UUID from existing image
-          const existingUrl = imageUrls.find(url => url.includes(`30_${productId}`));
-          if (existingUrl) {
-            const uuidMatch = existingUrl.match(/transform\/([^\/]+)\//);
-            if (uuidMatch) {
-              const uuid = uuidMatch[1];
-              
-              // Clear existing URLs and add main carousel images
-              imageUrls.length = 0;
-              
-              // Generate variants (1-6) for the main pattern
-              const viewTypeMatch = mainPattern.match(/_(\d{4})_/);
-              const viewType = viewTypeMatch[1];
-              
-              for (let i = 1; i <= 6; i++) {
-                const variantUrl = `https://contentstore.triumph.com/transform/${uuid}/30_${productId}_${viewType}_${i}.png?io=transform:fill,gravity:center,width:688,height:909&format=webp`;
-                imageUrls.push(variantUrl);
-                console.log(`Added main carousel variant: ${variantUrl}`);
-              }
-            }
-          }
-        }
-      }
-      
-      // Fallback: if no main carousel found, use the best available pattern
-      if (imageUrls.length === 1) {
-        console.log('No main carousel found, generating variants from available pattern');
-        const firstImage = imageUrls[0];
-        const patternMatch = firstImage.match(/(\d+)_(\d+)_(\d+)_(\d+)/);
-        
-        if (patternMatch) {
-          const [, prefix, prodId, viewType, variant] = patternMatch;
-          const uuid = firstImage.match(/transform\/([^\/]+)\//)?.[1];
-          
-          if (uuid) {
-            // Generate 3-4 more variants
-            for (let i = 1; i <= 4; i++) {
-              if (i.toString() !== variant) {
-                const variantUrl = `https://contentstore.triumph.com/transform/${uuid}/${prefix}_${prodId}_${viewType}_${i}.jpg?io=transform:fill,gravity:center,width:688,height:909&format=webp`;
-                if (!imageUrls.includes(variantUrl)) {
-                  imageUrls.push(variantUrl);
-                  console.log(`Added fallback variant: ${variantUrl}`);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-  }
-  
-  console.log(`Basic extraction found ${imageUrls.length} image URLs (including generated variants)`);
-  return imageUrls.slice(0, 10); // Limit to 10 images
+  console.log(`Precise extraction completed with ${imageUrls.length} images`);
+  return imageUrls;
 }
 
 async function processImages(imageUrls: string[]): Promise<Array<{url: string, alt?: string, base64?: string, mimeType?: string}>> {
