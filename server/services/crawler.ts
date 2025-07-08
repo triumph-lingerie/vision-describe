@@ -1,4 +1,3 @@
-import FirecrawlApp from '@mendable/firecrawl-js';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 
@@ -17,184 +16,53 @@ export interface CrawlResult {
   markdown?: string;
 }
 
-// Initialize Firecrawl with longer timeout
-const app = new FirecrawlApp({
-  apiKey: process.env.FIRECRAWL_API_KEY
-});
-
 export async function crawlProductPage(url: string): Promise<CrawlResult> {
-  console.log(`Starting crawl for URL: ${url}`);
+  console.log(`=== STARTING INTELLIGENT CRAWLER ===`);
+  console.log(`URL: ${url}`);
   
-  // Try Firecrawl first for better image extraction, but with timeout protection
-  const firecrawlPromise = crawlWithFirecrawl(url);
-  const timeoutPromise = new Promise<never>((_, reject) => 
-    setTimeout(() => reject(new Error('Firecrawl timeout after 15 seconds')), 15000)
-  );
-  
-  try {
-    console.log('Attempting Firecrawl extraction with 15s timeout...');
-    return await Promise.race([firecrawlPromise, timeoutPromise]);
-  } catch (error) {
-    console.log('Firecrawl failed or timed out, using basic method:', error.message || error);
-    return await crawlWithBasicMethod(url);
-  }
+  // Direct scraping - reliable and fast
+  return await crawlWithBasicMethod(url);
 }
 
-async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
-  // Configure Firecrawl for optimal performance and structured extraction
-  const scrapeResult = await app.scrapeUrl(url, {
-    formats: ['json', 'html'], // Use JSON for structured extraction + HTML for fallback
-    maxAge: 3600000, // Cache for 1 hour (500% faster for repeated requests)
-    jsonOptions: {
-      prompt: 'Extract from this product page: the product category (like "Minimizer bra", "Wired bra", etc.) and main product images URLs. Focus ONLY on images inside "product-detail product-wrapper" container - these are the actual product photos, not promotional banners or suggestions.'
-    },
-    includeTags: ['img', 'meta', 'title', 'div'], // Include essential tags
-    excludeTags: ['script', 'style'], // Exclude unnecessary tags
-    waitFor: 1000 // Wait for dynamic content
-  });
-  
-  if (!scrapeResult.success) {
-    throw new Error(`Firecrawl failed: ${scrapeResult.error}`);
-  }
 
-  // Firecrawl v1 returns data directly in the response object
-  const scrapedData = scrapeResult.data || scrapeResult;
-  
-  console.log('Firecrawl successful, processing data...');
-  console.log('Available data:', {
-    hasMarkdown: !!scrapedData.markdown,
-    hasMetadata: !!scrapedData.metadata,
-    hasJson: !!scrapedData.json,
-    markdownLength: scrapedData.markdown?.length || 0,
-    imageCount: scrapedData.metadata?.image?.length || 0,
-    hasHtml: !!scrapedData.html
-  });
-
-  const language = detectLanguageFromData(url, scrapedData);
-  
-  // Primary: Use JSON structured extraction if available
-  let category = '';
-  let imageUrls: string[] = [];
-  
-  if (scrapedData.json) {
-    console.log('Using Firecrawl JSON structured extraction...');
-    console.log('JSON data:', JSON.stringify(scrapedData.json, null, 2));
-    
-    try {
-      // Extract category from JSON if present
-      if (scrapedData.json.category) {
-        category = normalizeCategory(scrapedData.json.category);
-        console.log(`Extracted category from JSON: "${category}"`);
-      } else if (scrapedData.json.productCategory) {
-        category = normalizeCategory(scrapedData.json.productCategory);
-        console.log(`Extracted category from JSON productCategory: "${category}"`);
-      }
-      
-      // Extract images from JSON - handle different formats
-      console.log(`Looking for images in JSON. Has images field: ${!!scrapedData.json.images}`);
-      
-      if (scrapedData.json.images) {
-        if (Array.isArray(scrapedData.json.images)) {
-          imageUrls = scrapedData.json.images.slice(0, 8);
-          console.log(`Extracted ${imageUrls.length} images from JSON array`);
-        } else if (typeof scrapedData.json.images === 'string') {
-          // Single image as string
-          imageUrls = [scrapedData.json.images];
-          console.log(`Extracted 1 image from JSON string`);
-        }
-      }
-      
-      // Also check for alternative JSON field names
-      console.log(`Current imageUrls length: ${imageUrls.length}`);
-      
-      if (imageUrls.length === 0) {
-        const alternativeFields = ['mainProductImages', 'main_product_images', 'product_images', 'imageUrls', 'image_urls'];
-        console.log(`Checking alternative fields: ${alternativeFields.join(', ')}`);
-        for (const field of alternativeFields) {
-          console.log(`Checking field: ${field}, exists: ${!!scrapedData.json[field]}, isArray: ${Array.isArray(scrapedData.json[field])}`);
-          if (scrapedData.json[field] && Array.isArray(scrapedData.json[field])) {
-            imageUrls = scrapedData.json[field].slice(0, 8);
-            console.log(`✅ Extracted ${imageUrls.length} images from JSON field: ${field}`);
-            break;
-          }
-        }
-      }
-      
-      console.log(`Final imageUrls from JSON: ${imageUrls.length} images`);
-      if (imageUrls.length > 0) {
-        console.log(`First image URL: ${imageUrls[0]}`);
-      }
-    } catch (error) {
-      console.error('Error processing JSON data:', error);
-    }
-  }
-  
-  // Fallback: Use precise HTML extraction for Triumph
-  if (!category || imageUrls.length === 0) {
-    console.log(`Falling back to precise HTML extraction... (category: ${!!category}, images: ${imageUrls.length})`);
-    if (url.includes('triumph.com') && scrapedData.html) {
-      const $ = cheerio.load(scrapedData.html);
-      
-      if (!category) {
-        category = getCategoryTriumph($);
-        console.log(`Extracted category from HTML: "${category}"`);
-      }
-      
-      if (imageUrls.length === 0) {
-        const productId = getProductId(url);
-        if (productId) {
-          imageUrls = getImagesTriumph(scrapedData.html, productId);
-          console.log(`Extracted ${imageUrls.length} images from HTML for product ${productId}`);
-        }
-      }
-    }
-  }
-  
-  // Final fallback: Use original extraction methods
-  if (!category) {
-    category = extractCategoryFromData(scrapedData);
-  }
-  if (imageUrls.length === 0) {
-    imageUrls = extractImageUrlsFromData(scrapedData, url);
-  }
-
-  const images = await processImages(imageUrls);
-  
-  return {
-    url,
-    language,
-    category,
-    images,
-    title: scrapedData.metadata?.title || 'Product',
-    description: scrapedData.metadata?.description || '',
-    markdown: scrapedData.markdown
-  };
-}
 
 async function crawlWithBasicMethod(url: string): Promise<CrawlResult> {
+  console.log('=== INTELLIGENT CRAWLER STARTED ===');
+  
   const response = await axios.get(url, {
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
     },
-    timeout: 10000
+    timeout: 15000
   });
 
   const $ = cheerio.load(response.data);
   
+  // Step 1: Detect language
   const language = detectLanguageBasic(url, $);
-  let category = extractCategoryBasic($);
-  const imageUrls = extractImagesBasic($, url);
-  const images = await processImages(imageUrls);
+  console.log(`✓ Language detected: ${language}`);
   
-  // Smart category override for Triumph products
+  // Step 2: Extract category with intelligent methods
+  let category = '';
+  
+  // Triumph-specific category extraction
+  if (url.includes('triumph.com')) {
+    category = getCategoryTriumph($);
+    console.log(`✓ Triumph category: "${category}"`);
+  }
+  
+  // Fallback to generic extraction
+  if (!category) {
+    category = extractCategoryBasic($);
+    console.log(`✓ Generic category: "${category}"`);
+  }
+  
+  // Smart category override for Triumph products if needed
   if (url.includes('triumph.com') && (!category || category.includes('slips for') || category.includes('£'))) {
-    // Look for product type in title or meta description
     const title = $('title').text().toLowerCase();
     const metaDesc = $('meta[name="description"]').attr('content')?.toLowerCase() || '';
     
-    console.log(`Smart override check - URL: triumph.com, Current category: "${category}"`);
-    console.log(`Title: "${title}"`);
-    console.log(`Meta desc: "${metaDesc}"`);
+    console.log(`Smart override needed - Current: "${category}"`);
     
     if (title.includes('bra') || metaDesc.includes('bra')) {
       if (title.includes('non-wired') || metaDesc.includes('non-wired') || title.includes('unwired')) {
@@ -203,6 +71,8 @@ async function crawlWithBasicMethod(url: string): Promise<CrawlResult> {
         category = 'Push-up bra';
       } else if (title.includes('sports') || metaDesc.includes('sports')) {
         category = 'Sports bra';
+      } else if (title.includes('minimizer') || metaDesc.includes('minimizer')) {
+        category = 'Minimizer bra';
       } else {
         category = 'Bra';
       }
@@ -213,13 +83,55 @@ async function crawlWithBasicMethod(url: string): Promise<CrawlResult> {
     } else {
       category = 'Lingerie';
     }
-    console.log(`Applied smart category override for Triumph: ${category}`);
+    console.log(`✓ Smart override applied: "${category}"`);
+  }
+  
+  // Step 3: Intelligent image extraction with multiple strategies
+  let images: Array<{url: string, alt?: string, base64?: string, mimeType?: string}> = [];
+  
+  console.log('Starting intelligent image extraction...');
+  
+  // Strategy 1: Triumph-specific extraction
+  if (url.includes('triumph.com')) {
+    const productId = getProductId(url);
+    if (productId) {
+      console.log(`Extracting images for Triumph product ID: ${productId}`);
+      const imageUrls = getImagesTriumph(response.data, productId);
+      console.log(`Found ${imageUrls.length} Triumph-specific images`);
+      if (imageUrls.length > 0) {
+        images = await processImages(imageUrls);
+      }
+    }
+  }
+  
+  // Strategy 2: Generic product image extraction if no Triumph images found
+  if (images.length === 0) {
+    console.log('Trying generic extraction...');
+    const imageUrls = extractImagesBasic($, url);
+    console.log(`Found ${imageUrls.length} generic images`);
+    if (imageUrls.length > 0) {
+      images = await processImages(imageUrls);
+    }
+  }
+  
+  // Strategy 3: Fallback to any product-related images
+  if (images.length === 0) {
+    console.log('Trying fallback extraction...');
+    const fallbackImages = extractFallbackImages($, url);
+    console.log(`Found ${fallbackImages.length} fallback images`);
+    if (fallbackImages.length > 0) {
+      images = await processImages(fallbackImages);
+    }
   }
   
   const title = $('title').text().trim() || $('h1').first().text().trim() || 'Product';
   const description = $('meta[name="description"]').attr('content') || '';
 
-  console.log(`Basic crawl completed - Language: ${language}, Category: ${category}, Images: ${images.length}`);
+  console.log('=== INTELLIGENT CRAWLER COMPLETED ===');
+  console.log(`✓ Language: ${language}`);
+  console.log(`✓ Category: "${category}"`);
+  console.log(`✓ Images: ${images.length} processed`);
+  console.log(`✓ Title: "${title}"`);
 
   return {
     url,
@@ -586,6 +498,52 @@ function extractImagesBasic($: cheerio.CheerioAPI, baseUrl: string): string[] {
   
   console.log(`Precise extraction completed with ${imageUrls.length} images`);
   return imageUrls.slice(0, 8); // Limit to 8 images
+}
+
+function extractFallbackImages($: cheerio.CheerioAPI, baseUrl: string): string[] {
+  const imageUrls: string[] = [];
+  
+  console.log('=== Fallback image extraction ===');
+  
+  // Look for any img tags that might contain product images
+  const fallbackSelectors = [
+    'img[src*="product"]',                    // Images with "product" in URL
+    'img[src*="contentstore"]',               // Contentstore images
+    'img[alt*="product"], img[alt*="Product"]', // Images with product in alt text
+    '.product img',                           // Images in product containers
+    '.gallery img',                           // Gallery images
+    '[class*="image"] img',                   // Images in image-related classes
+    'img[src*="transform"]'                   // Transformed images (like Triumph)
+  ];
+  
+  for (const selector of fallbackSelectors) {
+    console.log(`Checking fallback selector: ${selector}`);
+    $(selector).each((_, element) => {
+      const $img = $(element);
+      let src = $img.attr('src') || $img.attr('data-src');
+      
+      if (src && !src.startsWith('data:') && !src.includes('placeholder') && !src.includes('loading')) {
+        // Convert relative to absolute URL
+        if (src.startsWith('//')) {
+          src = 'https:' + src;
+        } else if (src.startsWith('/')) {
+          const urlObj = new URL(baseUrl);
+          src = `${urlObj.protocol}//${urlObj.host}${src}`;
+        }
+        
+        // Filter out very small images (likely icons)
+        if (!src.includes('icon') && !src.includes('logo') && !imageUrls.includes(src)) {
+          console.log(`Found fallback image: ${src}`);
+          imageUrls.push(src);
+        }
+      }
+    });
+    
+    if (imageUrls.length >= 3) break; // Stop when we have enough images
+  }
+  
+  console.log(`Fallback extraction found ${imageUrls.length} images`);
+  return imageUrls.slice(0, 5); // Limit to 5 fallback images
 }
 
 async function processImages(imageUrls: string[]): Promise<Array<{url: string, alt?: string, base64?: string, mimeType?: string}>> {
