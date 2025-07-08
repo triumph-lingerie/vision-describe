@@ -25,19 +25,7 @@ export function UrlCrawler({ onCrawlComplete }: UrlCrawlerProps) {
     setError(null);
 
     try {
-      const response = await apiRequest(`/api/crawl`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: url.trim() }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to crawl URL");
-      }
-
+      const response = await apiRequest("POST", "/api/crawl", { url: url.trim() });
       const data = await response.json();
       onCrawlComplete(data.results);
       setUrl("");
