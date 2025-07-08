@@ -54,7 +54,38 @@ async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
   });
 
   const language = detectLanguageFromData(url, scrapedData);
-  const category = extractCategoryFromData(scrapedData);
+  
+  // Enhanced category extraction for Triumph specifically
+  let category = '';
+  if (url.includes('triumph.com')) {
+    // Try to extract from title/metadata first
+    const title = scrapedData.metadata?.title || scrapedData.title || '';
+    const description = scrapedData.metadata?.description || scrapedData.description || '';
+    
+    // Look for product type in title or description
+    const combinedText = `${title} ${description}`.toLowerCase();
+    
+    if (combinedText.includes('non-wired bra') || combinedText.includes('wireless bra')) {
+      category = 'Non-wired bra';
+    } else if (combinedText.includes('wired bra') || combinedText.includes('underwire bra')) {
+      category = 'Wired bra';
+    } else if (combinedText.includes('bra') && combinedText.includes('sport')) {
+      category = 'Sports bra';
+    } else if (combinedText.includes('bra')) {
+      category = 'Bra';
+    } else if (combinedText.includes('knickers') || combinedText.includes('brief') || combinedText.includes('panty')) {
+      category = 'Knickers';
+    } else if (combinedText.includes('bodysuit') || combinedText.includes('body')) {
+      category = 'Bodysuit';
+    }
+    
+    console.log(`Extracted category from metadata: "${category}" from title/desc: "${title}" / "${description}"`);
+  }
+  
+  // Fallback to original method if no category found
+  if (!category) {
+    category = extractCategoryFromData(scrapedData);
+  }
   
   // Enhanced image extraction for Triumph using Firecrawl metadata
   let imageUrls: string[] = [];
