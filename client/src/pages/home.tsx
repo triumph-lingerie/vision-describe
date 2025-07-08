@@ -184,7 +184,7 @@ export default function Home() {
               />
 
               <p className="text-xs text-muted-foreground text-center">
-                AI-generated content - review before use
+                AI can make mistakes. Review before use.
               </p>
 
               {isSettingsSaved && (
@@ -354,7 +354,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-2">
               <p className="text-sm text-muted-foreground">
-                Copyright Vision Describe 2025
+                © {new Date().getFullYear()} Vision Describe.
               </p>
             </div>
 

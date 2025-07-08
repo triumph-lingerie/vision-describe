@@ -6,16 +6,16 @@ export function Header() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Logo size="md" />
-          
+
           <div className="text-sm text-muted-foreground">
             Powered by{" "}
             <a
               href="https://openai.com/index/gpt-4v-system-card/"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-foreground hover:text-primary transition-colors duration-150"
+              className="font-medium transition-colors duration-150"
             >
-              GPT-4 Vision
+              GPT-4V(ision)
             </a>
           </div>
         </div>

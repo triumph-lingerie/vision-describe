@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 
 interface LogoProps {
   className?: string;
@@ -12,7 +13,7 @@ export function Logo({ className, size = "md" }: LogoProps) {
     lg: "h-8 w-8",
   };
   return (
-    <div className={cn("flex items-center gap-3", className)}>
+    <Link href="/" className={cn("flex items-center gap-3 hover:opacity-80 transition-opacity", className)}>
       <svg
         className={cn(sizeClasses[size], "text-foreground")}
         xmlns="http://www.w3.org/2000/svg"
@@ -35,6 +36,6 @@ export function Logo({ className, size = "md" }: LogoProps) {
       >
         Vision Describe
       </span>
-    </div>
+    </Link>
   );
 }
