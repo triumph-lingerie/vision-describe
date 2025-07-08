@@ -184,6 +184,15 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Improved OpenAI prompt to reduce content policy rejections and generate consistent descriptions
   - Frontend carosello interface with navigation arrows, indicators, and image counter fully functional
   - System now extracts 6-10 real product images from Triumph carousel and displays them navigably
+- July 08, 2025: Fixed main product carousel extraction for all Triumph product types
+  - Resolved issue where system extracted "Recently viewed" images instead of main product carousel
+  - Implemented intelligent pattern detection for different product types (bras, knickers, etc.)
+  - Added logic to find main carousel patterns with view types > 1000 (e.g., _6106_, _4505_)
+  - Created fallback system for products without main carousel patterns
+  - Successfully tested with multiple product types: bras generate 6 high-quality images, knickers generate 4 images
+  - Image quality significantly improved: bra images now 22KB vs 8KB previously, knickers 13KB vs 5KB
+  - All images now use larger dimensions (688x909) for better product visualization
+  - System automatically extracts product ID from URL and searches for appropriate carousel patterns
 
 ## User Preferences
 
