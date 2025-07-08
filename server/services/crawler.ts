@@ -23,10 +23,16 @@ const app = new FirecrawlApp({
 });
 
 export async function crawlProductPage(url: string): Promise<CrawlResult> {
-  // For now, use basic crawling method for reliability
-  // TODO: Fix Firecrawl integration later
-  console.log(`Using basic crawling for URL: ${url}`);
-  return await crawlWithBasicMethod(url);
+  console.log(`Starting crawl for URL: ${url}`);
+  
+  // Try Firecrawl first for better image extraction, especially for Triumph
+  try {
+    console.log('Attempting Firecrawl extraction first...');
+    return await crawlWithFirecrawl(url);
+  } catch (error) {
+    console.log('Firecrawl failed, falling back to basic method:', error);
+    return await crawlWithBasicMethod(url);
+  }
 }
 
 async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
@@ -43,12 +49,86 @@ async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
   console.log('Available data:', {
     hasMarkdown: !!scrapedData.markdown,
     hasMetadata: !!scrapedData.metadata,
-    markdownLength: scrapedData.markdown?.length || 0
+    markdownLength: scrapedData.markdown?.length || 0,
+    imageCount: scrapedData.metadata?.image?.length || 0
   });
 
   const language = detectLanguageFromData(url, scrapedData);
   const category = extractCategoryFromData(scrapedData);
-  const imageUrls = extractImageUrlsFromData(scrapedData);
+  
+  // Enhanced image extraction for Triumph using Firecrawl metadata
+  let imageUrls: string[] = [];
+  
+  if (url.includes('triumph.com') && scrapedData.metadata?.image) {
+    console.log(`Firecrawl found ${scrapedData.metadata.image.length} images for Triumph`);
+    
+    // Extract product ID from URL
+    const productIdMatch = url.match(/\/(\d+)\.html/);
+    const productId = productIdMatch ? productIdMatch[1] : null;
+    
+    if (productId) {
+      // Filter images to get only the main product images
+      // Based on the data you shared, let's try multiple patterns
+      const productImages = scrapedData.metadata.image.filter((img: string) => 
+        img.includes('contentstore.triumph.com') && (
+          img.includes(`30_${productId}_`) ||           // Standard pattern
+          img.includes(`_${productId}_`) ||             // Alternative pattern  
+          img.includes(`${productId}`)                  // Basic product ID match
+        )
+      );
+      
+      console.log(`Found ${productImages.length} product images for ID ${productId}`);
+      if (productImages.length > 0) {
+        console.log('Product images found:', productImages.slice(0, 3).map(img => img.substring(img.lastIndexOf('/') + 1)));
+      }
+      
+      // Prioritize main carousel patterns (viewType > 1000) and primary images
+      const mainCarouselImages = productImages.filter((img: string) => {
+        const viewTypeMatch = img.match(/_(\d{4})_/);
+        if (viewTypeMatch) {
+          const viewType = parseInt(viewTypeMatch[1]);
+          return viewType > 1000; // Main carousel patterns like 6106, 4505, etc.
+        }
+        return false;
+      });
+      
+      if (mainCarouselImages.length > 0) {
+        console.log(`Using ${mainCarouselImages.length} main carousel images from Firecrawl`);
+        imageUrls = mainCarouselImages.slice(0, 8); // Limit to 8 images
+      } else if (productImages.length > 0) {
+        // Fallback to other product images, but remove duplicates
+        const uniqueProductImages = [...new Set(productImages)];
+        console.log(`No main carousel found, using ${uniqueProductImages.length} unique product images from Firecrawl`);
+        imageUrls = uniqueProductImages.slice(0, 6);
+      } else {
+        // Last resort: check for any images that might be variants 
+        console.log('No direct product images found, checking for variants...');
+        const variantImages = scrapedData.metadata.image.filter((img: string) => 
+          img.includes('contentstore.triumph.com') && 
+          (img.includes(`_${productId}_`) || img.includes('transform/'))
+        );
+        console.log(`Found ${variantImages.length} potential variant images`);
+        imageUrls = variantImages.slice(0, 6);
+      }
+      
+      // Convert to higher quality images
+      imageUrls = imageUrls.map(img => 
+        img.replace(/width:\d+,height:\d+/, 'width:688,height:909')
+           .replace(/width=\d+&height=\d+/, 'width=688&height=909')
+      );
+    } else {
+      // Fallback to all Triumph images if no product ID found
+      const triumphImages = scrapedData.metadata.image.filter((img: string) => 
+        img.includes('contentstore.triumph.com')
+      );
+      console.log(`Using ${triumphImages.length} general Triumph images as fallback`);
+      imageUrls = triumphImages.slice(0, 10);
+    }
+  } else {
+    // For non-Triumph sites, use the original logic
+    imageUrls = extractImageUrlsFromData(scrapedData);
+  }
+
   const images = await processImages(imageUrls);
   
   return {
