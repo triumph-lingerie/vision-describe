@@ -98,7 +98,7 @@ export default function Home() {
                   
                   <div className="space-y-4">
                     <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
-                      <Globe className="h-4 w-4" />
+                      <RefreshCw className="h-4 w-4" />
                       URL Crawling Method
                     </h3>
                     <div className="flex items-start gap-3">
