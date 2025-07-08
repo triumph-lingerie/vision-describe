@@ -73,9 +73,39 @@ async function crawlWithBasicMethod(url: string): Promise<CrawlResult> {
   const $ = cheerio.load(response.data);
   
   const language = detectLanguageBasic(url, $);
-  const category = extractCategoryBasic($);
+  let category = extractCategoryBasic($);
   const imageUrls = extractImagesBasic($, url);
   const images = await processImages(imageUrls);
+  
+  // Smart category override for Triumph products
+  if (url.includes('triumph.com') && (!category || category.includes('slips for') || category.includes('£'))) {
+    // Look for product type in title or meta description
+    const title = $('title').text().toLowerCase();
+    const metaDesc = $('meta[name="description"]').attr('content')?.toLowerCase() || '';
+    
+    console.log(`Smart override check - URL: triumph.com, Current category: "${category}"`);
+    console.log(`Title: "${title}"`);
+    console.log(`Meta desc: "${metaDesc}"`);
+    
+    if (title.includes('bra') || metaDesc.includes('bra')) {
+      if (title.includes('non-wired') || metaDesc.includes('non-wired') || title.includes('unwired')) {
+        category = 'Non-wired bra';
+      } else if (title.includes('push-up') || metaDesc.includes('push-up')) {
+        category = 'Push-up bra';
+      } else if (title.includes('sports') || metaDesc.includes('sports')) {
+        category = 'Sports bra';
+      } else {
+        category = 'Bra';
+      }
+    } else if (title.includes('brief') || metaDesc.includes('brief')) {
+      category = 'Brief';
+    } else if (title.includes('slip') || metaDesc.includes('slip')) {
+      category = 'Slip';
+    } else {
+      category = 'Lingerie';
+    }
+    console.log(`Applied smart category override for Triumph: ${category}`);
+  }
   
   const title = $('title').text().trim() || $('h1').first().text().trim() || 'Product';
   const description = $('meta[name="description"]').attr('content') || '';
@@ -195,25 +225,61 @@ function extractCategoryFromData(scrapedData: any): string {
 }
 
 function extractCategoryBasic($: cheerio.CheerioAPI): string {
-  // Look for the specific div class mentioned by the user
-  const categoryFromDiv = $('.headline.headline--h9-rs').text().trim();
-  if (categoryFromDiv) return categoryFromDiv;
+  console.log('=== Category extraction debug ===');
   
-  // Fallback to other common selectors
-  const fallbacks = [
-    '.product-category',
-    '.breadcrumb li:last-child',
-    '[data-category]',
-    '.category-name',
-    'h2.category',
-    '.product-type'
-  ];
+  // Find ALL divs and debug them
+  $('div').each((i, elem) => {
+    const $elem = $(elem);
+    const classes = $elem.attr('class') || '';
+    const text = $elem.text().trim();
+    
+    // Only log divs that might contain product info
+    if ((classes.includes('headline') || text.includes('Non-wired') || text.includes('bra')) && text.length > 0 && text.length < 50) {
+      console.log(`DIV ${i}: class="${classes}", text="${text}"`);
+    }
+  });
   
-  for (const selector of fallbacks) {
-    const text = $(selector).text().trim();
-    if (text) return text;
+  // Try meta description first for cleaner product type
+  const metaDescription = $('meta[itemprop="description"]').attr('content');
+  if (metaDescription && metaDescription.trim()) {
+    console.log(`Found category from meta description: ${metaDescription.trim()}`);
+    return metaDescription.trim();
   }
   
+  // Look for the specific div class mentioned by the user  
+  const categoryFromDiv = $('.headline.headline--h9-rs').first().text().trim();
+  if (categoryFromDiv) {
+    console.log(`Found category from headline--h9-rs: ${categoryFromDiv}`);
+    return categoryFromDiv;
+  }
+  
+  // Try different variations of headline selectors
+  const headlineVariations = [
+    '.headline--h9-rs',
+    'div.headline.headline--h9-rs', 
+    '.headline.headline--h9-rs',
+    '[class*="headline--h9-rs"]'
+  ];
+  
+  for (const selector of headlineVariations) {
+    const text = $(selector).first().text().trim();
+    if (text) {
+      console.log(`Found category from headline variation ${selector}: ${text}`);
+      return text;
+    }
+  }
+  
+  // Look for any element containing "Non-wired bra" specifically
+  const nonWiredElements = $('*:contains("Non-wired bra")');
+  if (nonWiredElements.length > 0) {
+    const text = nonWiredElements.first().text().trim();
+    if (text.length < 100) { // Avoid getting long descriptions
+      console.log(`Found category from Non-wired bra search: ${text}`);
+      return text;
+    }
+  }
+  
+  console.log('No category found');
   return '';
 }
 
@@ -272,19 +338,19 @@ function extractImagesBasic($: cheerio.CheerioAPI, baseUrl: string): string[] {
   const seenUrls = new Set<string>();
   
   // Common selectors for product images - prioritize main product images
+  // Start with Triumph-specific selectors first
   const selectors = [
+    '.pdp__imageContainer.js-tileImageCarousel img', // Triumph-specific product image container
+    '.js-tileImageCarousel img',
+    '.pdp__imageContainer img',
     '.product-images img',
     '.product-gallery img', 
     '.product-photo img',
     '.product-image img',
     '[data-product-image] img',
     '.gallery img',
-    '.carousel img',
-    '.slider img',
-    'img[src*="product"]',
-    'img[alt*="product"]',
-    'img[src*="contentstore"]', // For Triumph-specific CDN
-    'img[src*="triumph"]'
+    'img[src*="contentstore"]', // For Triumph-specific CDN - prioritize actual product images
+    'img[alt*="product"]'
   ];
   
   for (const selector of selectors) {
@@ -324,6 +390,13 @@ function extractImagesBasic($: cheerio.CheerioAPI, baseUrl: string): string[] {
       const height = parseInt($img.attr('height') || '0');
       if ((width > 0 && width < 100) || (height > 0 && height < 100)) {
         console.log(`Skipping small image: ${src} (${width}x${height})`);
+        return;
+      }
+      
+      // Skip banner/promotional images for better product focus
+      if (src.includes('banner') || src.includes('promo') || src.includes('sloggi') || 
+          src.includes('brand') || src.includes('logo')) {
+        console.log(`Skipping promotional/banner image: ${src}`);
         return;
       }
       

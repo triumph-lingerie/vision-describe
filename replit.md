@@ -169,6 +169,14 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Implemented tab interface to switch between image upload and URL crawling methods
   - Updated "How to Use" section to explain both input methods
   - Enhanced application to support dual input: direct image upload or URL crawling
+- July 08, 2025: Optimized URL crawling with smart filters and category detection
+  - Fixed frontend API request error in UrlCrawler component 
+  - Added enhanced image filtering to remove placeholder images and data URLs
+  - Implemented smart category override for Triumph products using title/meta description analysis
+  - Added specific selectors for product image containers (.pdp__imageContainer, .js-tileImageCarousel)
+  - Created banner/promotional image filtering to focus on actual product images
+  - Successfully tested with Triumph product pages - correct category "Non-wired bra" extraction
+  - System now accurately detects product type and generates professional descriptions
 
 ## User Preferences
 
