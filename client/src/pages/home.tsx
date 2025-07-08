@@ -7,7 +7,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
 import { ProductSettings } from "@/components/product-settings";
 import { UrlCrawler } from "@/components/url-crawler";
-import { ChevronDown, ChevronUp, HelpCircle, Upload, Globe } from "lucide-react";
+import { ChevronDown, ChevronUp, HelpCircle, Plus, RefreshCw } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
@@ -72,7 +72,7 @@ export default function Home() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
-                      <Upload className="h-4 w-4" />
+                      <Plus className="h-4 w-4" />
                       Upload Images Method
                     </h3>
                     <div className="flex items-start gap-3">
@@ -133,11 +133,11 @@ export default function Home() {
           <Tabs defaultValue="upload" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upload" className="flex items-center gap-2">
-                <Upload className="h-4 w-4" />
+                <Plus className="h-4 w-4" />
                 Create New
               </TabsTrigger>
               <TabsTrigger value="crawl" className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
+                <RefreshCw className="h-4 w-4" />
                 Enhance Existing
               </TabsTrigger>
             </TabsList>
