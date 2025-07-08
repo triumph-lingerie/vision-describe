@@ -99,7 +99,7 @@ export default function Home() {
                   <div className="space-y-4">
                     <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
                       <RefreshCw className="h-4 w-4" />
-                      URL Crawling Method
+                      Enhance Existing Method
                     </h3>
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
@@ -107,7 +107,7 @@ export default function Home() {
                       </div>
                       <div>
                         <h4 className="font-medium text-foreground">Enter Product URL</h4>
-                        <p className="text-sm text-muted-foreground">Paste any product page URL</p>
+                        <p className="text-sm text-muted-foreground">Paste any product page URL from e-commerce sites</p>
                       </div>
                     </div>
                     
@@ -116,8 +116,18 @@ export default function Home() {
                         2
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground">Auto-Analysis</h4>
-                        <p className="text-sm text-muted-foreground">AI detects language, category, and analyzes images automatically</p>
+                        <h4 className="font-medium text-foreground">Auto-Extract Images</h4>
+                        <p className="text-sm text-muted-foreground">AI extracts high-quality product images from the page</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-foreground">Generate Description</h4>
+                        <p className="text-sm text-muted-foreground">Creates professional marketing copy with detected language and category</p>
                       </div>
                     </div>
                   </div>
