@@ -200,6 +200,12 @@ This is a full-stack web application specifically designed for e-commerce busine
   - System now works with fallback logic: exact product match → variant images → general Triumph images
   - Updated tab labels: "Upload Images" → "Create New One", "Crawl URL" → "Improve Existing"
   - Firecrawl integration provides more reliable image extraction than basic Cheerio scraping
+- July 08, 2025: Improved user interface with collapsible instructions
+  - Both "Create New" and "Enhance Existing" tabs now have collapsible "How to Use" sections
+  - Removed redundant "How it works" section from main interface
+  - Added API key requirements notice in both instruction sections with direct link to OpenAI platform
+  - Instructions are now hidden by default for cleaner interface, expandable with chevron icons
+  - Clear 4-step process explanation for both upload and URL crawling workflows
 
 ## User Preferences
 
