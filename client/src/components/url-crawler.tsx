@@ -87,20 +87,7 @@ export function UrlCrawler({ onCrawlComplete }: UrlCrawlerProps) {
           </div>
         )}
 
-        <div className="bg-muted p-4 rounded-lg">
-          <div className="flex items-start gap-2 text-sm text-muted-foreground">
-            <Eye className="h-4 w-4 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium mb-1">How it works:</p>
-              <ul className="space-y-1 text-xs">
-                <li>• Detects page language automatically from URL or HTML</li>
-                <li>• Extracts product category from page content</li>
-                <li>• Finds and analyzes product images</li>
-                <li>• Generates professional descriptions in detected language</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+
         
         <div className="mt-4 pt-4 border-t border-muted-foreground/20">
           <p className="text-xs text-muted-foreground">
