@@ -19,6 +19,7 @@ export default function Home() {
   });
   const [isCreateHowToOpen, setIsCreateHowToOpen] = useState(false);
   const [isEnhanceHowToOpen, setIsEnhanceHowToOpen] = useState(false);
+  const [isSettingsSaved, setIsSettingsSaved] = useState(false);
 
 
   const handleUploadComplete = (newResults: any[]) => {
@@ -31,6 +32,7 @@ export default function Home() {
 
   const handleSettingsChange = (newSettings: any) => {
     setSettings(newSettings);
+    setIsSettingsSaved(true);
   };
 
   return (
@@ -139,12 +141,14 @@ export default function Home() {
                 defaultSettings={settings}
               />
               
-              <ImageUpload 
-                onUploadComplete={handleUploadComplete}
-                language={settings.language}
-                category={settings.category}
-                certifications={settings.certifications}
-              />
+              {isSettingsSaved && (
+                <ImageUpload 
+                  onUploadComplete={handleUploadComplete}
+                  language={settings.language}
+                  category={settings.category}
+                  certifications={settings.certifications}
+                />
+              )}
             </TabsContent>
             
             <TabsContent value="crawl" className="space-y-6 mt-6">
