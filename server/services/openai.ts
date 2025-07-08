@@ -28,20 +28,23 @@ export async function analyzeImages(images: Array<{base64: string, mimeType: str
     console.log("Sending request to OpenAI with image contents...");
     
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", 
       messages: [
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: `You are a senior SEO content optimizer and linguistic stylist specialized in fashion and lingerie e-commerce. 
+              text: `Create a professional product description for a ${category} based on the provided product images.
 
-MANDATORY: You MUST look at and analyze the ${images.length} uploaded images. These are real product photos that require detailed visual analysis.
+TASK: Write marketing copy for this lingerie product using the ${images.length} images provided.
 
-CRITICAL REQUIREMENT: You MUST base your description ONLY on what you actually see in the images. Do NOT add generic features or assume anything not visible.
+Product category: ${category}
+Language: ${language}
 
-VISUAL ANALYSIS CHECKLIST - Look at each image and identify:
+Please analyze the images and create an engaging product description.
+
+VISUAL ANALYSIS - Examine the images for:
 - Exact product type and style (bra, underwear, swimwear, etc.)
 - Specific construction details visible (seams, bands, cups, straps)
 - Materials and textures you can see (lace, mesh, cotton, satin, etc.)
