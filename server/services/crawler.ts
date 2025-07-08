@@ -46,7 +46,7 @@ async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
     formats: ['json', 'html'], // Use JSON for structured extraction + HTML for fallback
     maxAge: 3600000, // Cache for 1 hour (500% faster for repeated requests)
     jsonOptions: {
-      prompt: 'Extract from this product page: the product category (like "Minimizer bra", "Wired bra", etc.) and main product images URLs. Focus on actual product photos, not promotional banners or suggestions.'
+      prompt: 'Extract from this product page: the product category (like "Minimizer bra", "Wired bra", etc.) and main product images URLs. Focus ONLY on images inside "product-detail product-wrapper" container - these are the actual product photos, not promotional banners or suggestions.'
     },
     includeTags: ['img', 'meta', 'title', 'div'], // Include essential tags
     excludeTags: ['script', 'style'], // Exclude unnecessary tags
@@ -336,21 +336,44 @@ function getProductId(url: string): string | null {
 function getImagesTriumph(html: string, productId: string): string[] {
   const $ = cheerio.load(html);
 
-  // Take <img> and <source> (srcset) only inside the correct container
+  // Take <img> and <source> (srcset) only inside the correct product-detail container
   const srcs: string[] = [];
-  $('.pdp__imageContainer img, .pdp__imageContainer source').each((_, el) => {
+  console.log('Searching for images in product-detail product-wrapper container...');
+  
+  // Target the correct container: product-detail product-wrapper
+  $('.product-detail.product-wrapper img, .product-detail.product-wrapper source').each((_, el) => {
     const src = $(el).attr('src') || $(el).attr('data-src');
     const srcset = $(el).attr('srcset') || $(el).attr('data-srcset');
 
     [src, ...(srcset ? srcset.split(',') : [])].forEach(raw => {
       const url = raw?.trim().split(' ')[0];      // remove dimensions
       if (url && url.includes(`_${productId}_`) && !srcs.includes(url)) {
+        console.log(`Found product image in container: ${url}`);
         srcs.push(url.replace(/width:\d+,height:\d+/g, 'width:688,height:909')  // high quality
                      .replace(/width=\d+&height=\d+/g, 'width=688&height=909'));
       }
     });
   });
 
+  // Fallback to pdp__imageContainer if no images found in product-detail
+  if (srcs.length === 0) {
+    console.log('No images found in product-detail container, trying pdp__imageContainer fallback...');
+    $('.pdp__imageContainer img, .pdp__imageContainer source').each((_, el) => {
+      const src = $(el).attr('src') || $(el).attr('data-src');
+      const srcset = $(el).attr('srcset') || $(el).attr('data-srcset');
+
+      [src, ...(srcset ? srcset.split(',') : [])].forEach(raw => {
+        const url = raw?.trim().split(' ')[0];      // remove dimensions
+        if (url && url.includes(`_${productId}_`) && !srcs.includes(url)) {
+          console.log(`Found product image in fallback: ${url}`);
+          srcs.push(url.replace(/width:\d+,height:\d+/g, 'width:688,height:909')  // high quality
+                       .replace(/width=\d+&height=\d+/g, 'width=688&height=909'));
+        }
+      });
+    });
+  }
+
+  console.log(`Total images found: ${srcs.length}`);
   return srcs.slice(0, 8); // maximum 8 images
 }
 
@@ -479,22 +502,22 @@ function extractImageUrlsFromData(scrapedData: any, url?: string): string[] {
 function extractImagesBasic($: cheerio.CheerioAPI, baseUrl: string): string[] {
   const imageUrls: string[] = [];
   
-  console.log('=== Precise image extraction from main product image ===');
+  console.log('=== Precise image extraction from product-detail container ===');
   
-  // PRECISION: Extract only the main product image as suggested
-  // <img class="image-shadow pdp__mainImage carousel__image js-zoom" src="..." />
-  const mainImageSelectors = [
-    '.pdp__mainImage.carousel__image.js-zoom',           // Exact class combination
-    'img.pdp__mainImage.carousel__image',                // Alternative without js-zoom
-    '.pdp__mainImage',                                   // Fallback to main image
-    '.carousel__image.js-zoom'                           // Alternative combination
+  // PRIMARY: Extract images from the correct product-detail product-wrapper container
+  const productContainerSelectors = [
+    '.product-detail.product-wrapper img',               // Target the specific container
+    '.product-detail.product-wrapper source'            // Also check source elements
   ];
   
-  for (const selector of mainImageSelectors) {
-    const mainImage = $(selector).first();
-    if (mainImage.length > 0) {
-      let src = mainImage.attr('src');
+  for (const selector of productContainerSelectors) {
+    console.log(`Checking selector: ${selector}`);
+    $(selector).each((_, element) => {
+      const $img = $(element);
+      let src = $img.attr('src') || $img.attr('data-src');
+      const srcset = $img.attr('srcset') || $img.attr('data-srcset');
       
+      // Process src attribute
       if (src && !src.startsWith('data:')) {
         // Convert relative to absolute URL
         if (src.startsWith('//')) {
@@ -504,64 +527,65 @@ function extractImagesBasic($: cheerio.CheerioAPI, baseUrl: string): string[] {
           src = `${urlObj.protocol}//${urlObj.host}${src}`;
         }
         
-        console.log(`Found main product image with ${selector}: ${src}`);
+        console.log(`Found product image in container: ${src}`);
         imageUrls.push(src);
-        
-        // Generate additional views from main image pattern (for variety)
-        if (src.includes('contentstore.triumph.com')) {
-          const productMatch = src.match(/(\d+_\d+_\d+_)(\d+)/);
-          if (productMatch) {
-            const basePattern = productMatch[1]; // e.g., "30_10215848_7539_"
-            const currentView = parseInt(productMatch[2]); // e.g., 1
-            
-            // Generate 2-3 additional views for product variety
-            for (let i = 2; i <= 4; i++) {
-              if (i !== currentView) {
-                const variantSrc = src.replace(`${basePattern}${currentView}`, `${basePattern}${i}`);
-                imageUrls.push(variantSrc);
-                console.log(`Generated variant view ${i}: ${variantSrc}`);
-              }
+      }
+      
+      // Process srcset attribute
+      if (srcset) {
+        const srcsetUrls = srcset.split(',').map(s => s.trim().split(' ')[0]);
+        for (let srcsetUrl of srcsetUrls) {
+          if (srcsetUrl && !srcsetUrl.startsWith('data:')) {
+            if (srcsetUrl.startsWith('//')) {
+              srcsetUrl = 'https:' + srcsetUrl;
+            } else if (srcsetUrl.startsWith('/')) {
+              const urlObj = new URL(baseUrl);
+              srcsetUrl = `${urlObj.protocol}//${urlObj.host}${srcsetUrl}`;
             }
+            
+            console.log(`Found product image in srcset: ${srcsetUrl}`);
+            imageUrls.push(srcsetUrl);
           }
         }
+      }
+    });
+  }
+  
+  // FALLBACK: If no images found in product-detail container, try legacy selectors
+  if (imageUrls.length === 0) {
+    console.log('No images found in product-detail container, trying legacy selectors...');
+    
+    const fallbackSelectors = [
+      '.pdp__mainImage.carousel__image.js-zoom',         // Exact class combination
+      'img.pdp__mainImage.carousel__image',              // Alternative without js-zoom
+      '.pdp__mainImage',                                 // Fallback to main image
+      '.carousel__image.js-zoom'                         // Alternative combination
+    ];
+    
+    for (const selector of fallbackSelectors) {
+      const mainImage = $(selector).first();
+      if (mainImage.length > 0) {
+        let src = mainImage.attr('src');
         
-        console.log(`Extracted ${imageUrls.length} images from main product image`);
-        return imageUrls; // Return immediately after finding main image
+        if (src && !src.startsWith('data:')) {
+          // Convert relative to absolute URL
+          if (src.startsWith('//')) {
+            src = 'https:' + src;
+          } else if (src.startsWith('/')) {
+            const urlObj = new URL(baseUrl);
+            src = `${urlObj.protocol}//${urlObj.host}${src}`;
+          }
+          
+          console.log(`Found fallback image with ${selector}: ${src}`);
+          imageUrls.push(src);
+          break; // Only take one fallback image
+        }
       }
     }
   }
   
-  // FALLBACK: If no main image found, try carousel extraction (limited)
-  console.log('Main product image not found, trying carousel fallback...');
-  
-  const fallbackSelectors = [
-    '.pdp__imageContainer.js-tileImageCarousel img',
-    '.js-tileImageCarousel img'
-  ];
-  
-  for (const selector of fallbackSelectors) {
-    $(selector).first().each((_, element) => {
-      const $img = $(element);
-      let src = $img.attr('src');
-      
-      if (src && !src.startsWith('data:')) {
-        if (src.startsWith('//')) {
-          src = 'https:' + src;
-        } else if (src.startsWith('/')) {
-          const urlObj = new URL(baseUrl);
-          src = `${urlObj.protocol}//${urlObj.host}${src}`;
-        }
-        
-        console.log(`Found fallback image: ${src}`);
-        imageUrls.push(src);
-      }
-    });
-    
-    if (imageUrls.length > 0) break; // Stop after finding first valid image
-  }
-  
   console.log(`Precise extraction completed with ${imageUrls.length} images`);
-  return imageUrls;
+  return imageUrls.slice(0, 8); // Limit to 8 images
 }
 
 async function processImages(imageUrls: string[]): Promise<Array<{url: string, alt?: string, base64?: string, mimeType?: string}>> {
