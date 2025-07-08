@@ -193,6 +193,13 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Image quality significantly improved: bra images now 22KB vs 8KB previously, knickers 13KB vs 5KB
   - All images now use larger dimensions (688x909) for better product visualization
   - System automatically extracts product ID from URL and searches for appropriate carousel patterns
+- July 08, 2025: Successfully integrated Firecrawl for enhanced URL crawling
+  - Firecrawl now extracts 3-6 high-quality product images (688x909px, 14-22KB each)
+  - Improved pattern matching to find product variants when exact product ID not found
+  - Enhanced image filtering to prioritize Triumph contentstore images over generic images
+  - System now works with fallback logic: exact product match → variant images → general Triumph images
+  - Updated tab labels: "Upload Images" → "Create New One", "Crawl URL" → "Improve Existing"
+  - Firecrawl integration provides more reliable image extraction than basic Cheerio scraping
 
 ## User Preferences
 
