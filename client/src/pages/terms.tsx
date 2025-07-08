@@ -1,7 +1,17 @@
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+
 export default function Terms() {
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-8">
+        <Link href="/">
+          <Button variant="ghost" className="mb-6 p-0 h-auto text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Home
+          </Button>
+        </Link>
         <div className="prose prose-sm max-w-none dark:prose-invert">
           <h1 className="text-2xl font-bold text-foreground mb-6">Terms of Service</h1>
           <p className="text-muted-foreground mb-4">Last updated: {new Date().toLocaleDateString()}</p>
