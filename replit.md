@@ -180,6 +180,10 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Fixed capitalization in OpenAI descriptions: "This non-wired bra" instead of "This Non-wired bra"
   - Improved image deduplication logic for Triumph carousel images
   - Added carousel image pattern generation for Triumph products to capture multiple product views
+  - Enhanced carousel extraction to use real DOM thumbnail selectors instead of pattern guessing
+  - Improved OpenAI prompt to reduce content policy rejections and generate consistent descriptions
+  - Frontend carosello interface with navigation arrows, indicators, and image counter fully functional
+  - System now extracts 6-10 real product images from Triumph carousel and displays them navigably
 
 ## User Preferences
 

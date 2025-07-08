@@ -1,0 +1,19 @@
+{
+  "id": 1,
+  "originalName": "DELICATE DOREENmaestro",
+  "description": "This non-wired bra combines elegance with everyday comfort, offering a seamless blend of style and practicality. The intricate floral lace detailing on the cups adds a touch of sophistication, while the soft, breathable fabric ensures all-day comfort. Perfect for those seeking both support and freedom, this bra features wide, comfortable straps that prevent digging and provide gentle support without the need for wires.\n\n<ul class=\"pd\">\n<li>Delicate floral lace for a touch of elegance</li>\n<li>Soft, breathable fabric for ultimate comfort</li>\n<li>Wide straps for added support and ease</li>\n<li>Non-wired design for natural movement</li>\n<li>Seamless construction for a smooth silhouette</li>\n</ul>",
+  "language": "en",
+  "category": "Non-wired bra",
+  "allImages": [
+    "https://contentstore.triumph.com/transform/dd136021-d970-4fb4-a95d-3e77b36683e7/30_10135874_0003_4.jpg?io=transform:fill,gravity:center,width:339,height:447&format=webp",
+    "https://contentstore.triumph.com/transform/dd136021-d970-4fb4-a95d-3e77b36683e7/30_10135874_0003_1.jpg?io=transform:fill,gravity:center,width:339,height:447&format=webp",
+    "https://contentstore.triumph.com/transform/dd136021-d970-4fb4-a95d-3e77b36683e7/30_10135874_0003_2.jpg?io=transform:fill,gravity:center,width:339,height:447&format=webp",
+    "https://contentstore.triumph.com/transform/dd136021-d970-4fb4-a95d-3e77b36683e7/30_10135874_0003_3.jpg?io=transform:fill,gravity:center,width:339,height:447&format=webp",
+    "https://contentstore.triumph.com/transform/dd136021-d970-4fb4-a95d-3e77b36683e7/30_10135874_0003_5.jpg?io=transform:fill,gravity:center,width:339,height:447&format=webp",
+    "https://contentstore.triumph.com/transform/dd136021-d970-4fb4-a95d-3e77b36683e7/30_10135874_0003_6.jpg?io=transform:fill,gravity:center,width:339,height:447&format=webp"
+  ],
+  "isMultiImage": true,
+  "imageCount": 6,
+  "sourceUrl": "https://uk.triumph.com/delicate-doreen/10135874.html",
+  "createdAt": "2025-07-08T08:06:13.048Z"
+}
