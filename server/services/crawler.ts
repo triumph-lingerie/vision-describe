@@ -423,60 +423,53 @@ function extractImagesBasic($: cheerio.CheerioAPI, baseUrl: string): string[] {
     });
   }
   
-  // For Triumph, extract real carousel images from thumbnail selectors
+  // For Triumph, extract real carousel images - temporarily disable to test with real URLs
   if (baseUrl.includes('triumph.com')) {
-    console.log('Extracting Triumph carousel images from thumbnails...');
+    console.log('Extracting Triumph main product carousel images...');
     
-    // Look for thumbnail images which contain the real carousel variants
-    $('.pdp__thumbnail img, .pdp__thumbnails img, .js-thumbnail img').each((_, element) => {
-      const $img = $(element);
-      const src = $img.attr('src') || $img.attr('data-src');
+    // Debug: Search for _6106_ pattern in the HTML first
+    const htmlContent = $.html();
+    const targetPatterns = htmlContent.match(/30_10135874_6106_\d+\.(?:jpg|png)/g);
+    
+    if (targetPatterns) {
+      const uniquePatterns = [...new Set(targetPatterns)];
+      console.log(`Found _6106_ product patterns in HTML: ${uniquePatterns.join(', ')}`);
       
-      if (src && src.includes('contentstore.triumph.com')) {
-        // Convert thumbnail to full-size image URL
-        let fullSizeUrl = src;
-        
-        // Replace thumbnail dimensions with larger carousel dimensions
-        fullSizeUrl = fullSizeUrl.replace(/width:\d+,height:\d+/, 'width:688,height:909');
-        fullSizeUrl = fullSizeUrl.replace(/width=\d+&height=\d+/, 'width=688&height=909');
-        
-        if (!imageUrls.includes(fullSizeUrl)) {
-          imageUrls.push(fullSizeUrl);
-          console.log(`Added Triumph carousel image from thumbnail: ${fullSizeUrl}`);
-        }
-      }
-    });
-    
-    // Also try pattern generation as fallback
-    if (imageUrls.length > 0) {
-      const firstImage = imageUrls[0];
-      if (firstImage.includes('contentstore.triumph.com')) {
-        // Extract pattern: could be 30_10135874_6106_2.jpg or 30_10135874_0003_4.jpg
-        const match = firstImage.match(/(\d+)_(\d+)_(\d+)_(\d+)/);
-        if (match) {
-          const [, prefix, productId, viewType, variant] = match;
-          console.log(`Found Triumph image pattern: ${prefix}_${productId}_${viewType}_${variant}`);
-          
-          // Generate potential variations for common Triumph patterns
-          const potentialVariants = ['1', '2', '3', '4', '5', '6'];
-          
-          for (const variantNum of potentialVariants) {
-            if (variantNum !== variant) {
-              const newImageUrl = firstImage.replace(
-                `${prefix}_${productId}_${viewType}_${variant}`,
-                `${prefix}_${productId}_${viewType}_${variantNum}`
-              );
-              
-              // Only add unique URLs
-              if (!imageUrls.includes(newImageUrl)) {
-                imageUrls.push(newImageUrl);
-                console.log(`Generated potential Triumph variant: ${newImageUrl}`);
-              }
-            }
+      // For each pattern found, create the proper Triumph URL with real UUID
+      uniquePatterns.forEach(pattern => {
+        // Extract the UUID from the existing image URLs
+        const existingUrl = imageUrls.find(url => url.includes('30_10135874'));
+        if (existingUrl) {
+          const uuidMatch = existingUrl.match(/transform\/([^\/]+)\//);
+          if (uuidMatch) {
+            const uuid = uuidMatch[1];
+            const fullUrl = `https://contentstore.triumph.com/transform/${uuid}/${pattern}?io=transform:fill,gravity:center,width:688,height:909&format=webp`;
+            
+            // Replace the existing wrong pattern URLs
+            imageUrls.length = 0; // Clear existing URLs
+            imageUrls.push(fullUrl);
+            console.log(`Added correct main carousel image: ${fullUrl}`);
           }
         }
+      });
+      
+      // Generate variants for the _6106_ pattern
+      if (uniquePatterns.length > 0 && imageUrls.length > 0) {
+        const baseUrl = imageUrls[0];
+        const variants = ['1', '2', '3', '4', '5'];
+        
+        variants.forEach(variant => {
+          const variantUrl = baseUrl.replace(/_6106_\d+/, `_6106_${variant}`);
+          if (!imageUrls.includes(variantUrl)) {
+            imageUrls.push(variantUrl);
+            console.log(`Added _6106_ variant: ${variantUrl}`);
+          }
+        });
       }
+    } else {
+      console.log('No _6106_ patterns found, using fallback strategy');
     }
+
   }
   
   console.log(`Basic extraction found ${imageUrls.length} image URLs (including generated variants)`);
