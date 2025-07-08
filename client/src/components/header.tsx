@@ -8,7 +8,15 @@ export function Header() {
           <Logo size="md" />
           
           <div className="text-sm text-muted-foreground">
-            Powered by OpenAI
+            Powered by{" "}
+            <a
+              href="https://openai.com/index/gpt-4v-system-card/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-foreground hover:text-primary transition-colors duration-150"
+            >
+              GPT-4 Vision
+            </a>
           </div>
         </div>
       </div>
