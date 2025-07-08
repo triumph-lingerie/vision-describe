@@ -78,24 +78,60 @@ async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
   
   if (scrapedData.json) {
     console.log('Using Firecrawl JSON structured extraction...');
-    console.log('JSON data:', scrapedData.json);
+    console.log('JSON data:', JSON.stringify(scrapedData.json, null, 2));
     
-    // Extract category from JSON if present
-    if (scrapedData.json.category) {
-      category = normalizeCategory(scrapedData.json.category);
-      console.log(`Extracted category from JSON: "${category}"`);
-    }
-    
-    // Extract images from JSON if present
-    if (scrapedData.json.images && Array.isArray(scrapedData.json.images)) {
-      imageUrls = scrapedData.json.images.slice(0, 8);
-      console.log(`Extracted ${imageUrls.length} images from JSON`);
+    try {
+      // Extract category from JSON if present
+      if (scrapedData.json.category) {
+        category = normalizeCategory(scrapedData.json.category);
+        console.log(`Extracted category from JSON: "${category}"`);
+      } else if (scrapedData.json.productCategory) {
+        category = normalizeCategory(scrapedData.json.productCategory);
+        console.log(`Extracted category from JSON productCategory: "${category}"`);
+      }
+      
+      // Extract images from JSON - handle different formats
+      console.log(`Looking for images in JSON. Has images field: ${!!scrapedData.json.images}`);
+      
+      if (scrapedData.json.images) {
+        if (Array.isArray(scrapedData.json.images)) {
+          imageUrls = scrapedData.json.images.slice(0, 8);
+          console.log(`Extracted ${imageUrls.length} images from JSON array`);
+        } else if (typeof scrapedData.json.images === 'string') {
+          // Single image as string
+          imageUrls = [scrapedData.json.images];
+          console.log(`Extracted 1 image from JSON string`);
+        }
+      }
+      
+      // Also check for alternative JSON field names
+      console.log(`Current imageUrls length: ${imageUrls.length}`);
+      
+      if (imageUrls.length === 0) {
+        const alternativeFields = ['mainProductImages', 'main_product_images', 'product_images', 'imageUrls', 'image_urls'];
+        console.log(`Checking alternative fields: ${alternativeFields.join(', ')}`);
+        for (const field of alternativeFields) {
+          console.log(`Checking field: ${field}, exists: ${!!scrapedData.json[field]}, isArray: ${Array.isArray(scrapedData.json[field])}`);
+          if (scrapedData.json[field] && Array.isArray(scrapedData.json[field])) {
+            imageUrls = scrapedData.json[field].slice(0, 8);
+            console.log(`✅ Extracted ${imageUrls.length} images from JSON field: ${field}`);
+            break;
+          }
+        }
+      }
+      
+      console.log(`Final imageUrls from JSON: ${imageUrls.length} images`);
+      if (imageUrls.length > 0) {
+        console.log(`First image URL: ${imageUrls[0]}`);
+      }
+    } catch (error) {
+      console.error('Error processing JSON data:', error);
     }
   }
   
   // Fallback: Use precise HTML extraction for Triumph
   if (!category || imageUrls.length === 0) {
-    console.log('Falling back to precise HTML extraction...');
+    console.log(`Falling back to precise HTML extraction... (category: ${!!category}, images: ${imageUrls.length})`);
     if (url.includes('triumph.com') && scrapedData.html) {
       const $ = cheerio.load(scrapedData.html);
       
