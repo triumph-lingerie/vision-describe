@@ -423,32 +423,54 @@ function extractImagesBasic($: cheerio.CheerioAPI, baseUrl: string): string[] {
     });
   }
   
-  // For Triumph, try to generate additional carousel images based on pattern
-  if (baseUrl.includes('triumph.com') && imageUrls.length > 0) {
-    const firstImage = imageUrls[0];
-    if (firstImage.includes('contentstore.triumph.com')) {
-      // Extract pattern: 30_10135874_0003_4.jpg
-      const match = firstImage.match(/(\d+)_(\d+)_(\d+)_(\d+)/);
-      if (match) {
-        const [, prefix, productId, viewType, variant] = match;
-        console.log(`Found Triumph image pattern: ${prefix}_${productId}_${viewType}_${variant}`);
+  // For Triumph, extract real carousel images from thumbnail selectors
+  if (baseUrl.includes('triumph.com')) {
+    console.log('Extracting Triumph carousel images from thumbnails...');
+    
+    // Look for thumbnail images which contain the real carousel variants
+    $('.pdp__thumbnail img, .pdp__thumbnails img, .js-thumbnail img').each((_, element) => {
+      const $img = $(element);
+      const src = $img.attr('src') || $img.attr('data-src');
+      
+      if (src && src.includes('contentstore.triumph.com')) {
+        // Convert thumbnail to full-size image URL
+        let fullSizeUrl = src;
         
-        // Generate potential carousel variations
-        const potentialViews = ['0002', '0003', '0004', '0005', '0006'];
-        const potentialVariants = ['1', '2', '3', '4', '5'];
+        // Replace thumbnail dimensions with larger carousel dimensions
+        fullSizeUrl = fullSizeUrl.replace(/width:\d+,height:\d+/, 'width:688,height:909');
+        fullSizeUrl = fullSizeUrl.replace(/width=\d+&height=\d+/, 'width=688&height=909');
         
-        for (const view of potentialViews) {
+        if (!imageUrls.includes(fullSizeUrl)) {
+          imageUrls.push(fullSizeUrl);
+          console.log(`Added Triumph carousel image from thumbnail: ${fullSizeUrl}`);
+        }
+      }
+    });
+    
+    // Also try pattern generation as fallback
+    if (imageUrls.length > 0) {
+      const firstImage = imageUrls[0];
+      if (firstImage.includes('contentstore.triumph.com')) {
+        // Extract pattern: could be 30_10135874_6106_2.jpg or 30_10135874_0003_4.jpg
+        const match = firstImage.match(/(\d+)_(\d+)_(\d+)_(\d+)/);
+        if (match) {
+          const [, prefix, productId, viewType, variant] = match;
+          console.log(`Found Triumph image pattern: ${prefix}_${productId}_${viewType}_${variant}`);
+          
+          // Generate potential variations for common Triumph patterns
+          const potentialVariants = ['1', '2', '3', '4', '5', '6'];
+          
           for (const variantNum of potentialVariants) {
-            if (view !== viewType || variantNum !== variant) {
+            if (variantNum !== variant) {
               const newImageUrl = firstImage.replace(
                 `${prefix}_${productId}_${viewType}_${variant}`,
-                `${prefix}_${productId}_${view}_${variantNum}`
+                `${prefix}_${productId}_${viewType}_${variantNum}`
               );
               
               // Only add unique URLs
               if (!imageUrls.includes(newImageUrl)) {
                 imageUrls.push(newImageUrl);
-                console.log(`Generated potential Triumph carousel image: ${newImageUrl}`);
+                console.log(`Generated potential Triumph variant: ${newImageUrl}`);
               }
             }
           }
