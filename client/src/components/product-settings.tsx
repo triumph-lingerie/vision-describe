@@ -212,6 +212,20 @@ export function ProductSettings({
           </Button>
         </form>
       </Form>
+      
+      <div className="mt-4 pt-4 border-t border-muted-foreground/20">
+        <p className="text-xs text-muted-foreground">
+          Requires OpenAI API key. Get yours at{" "}
+          <a 
+            href="https://platform.openai.com/api-keys" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-primary hover:underline"
+          >
+            platform.openai.com
+          </a>
+        </p>
+      </div>
     </Card>
   );
 }

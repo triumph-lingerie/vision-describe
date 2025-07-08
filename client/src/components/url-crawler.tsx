@@ -101,6 +101,29 @@ export function UrlCrawler({ onCrawlComplete }: UrlCrawlerProps) {
             </div>
           </div>
         </div>
+        
+        <div className="mt-4 pt-4 border-t border-muted-foreground/20">
+          <p className="text-xs text-muted-foreground">
+            Requires OpenAI API key and Firecrawl API key. Get them at{" "}
+            <a 
+              href="https://platform.openai.com/api-keys" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              platform.openai.com
+            </a>
+            {" and "}
+            <a 
+              href="https://www.firecrawl.dev/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              firecrawl.dev
+            </a>
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
