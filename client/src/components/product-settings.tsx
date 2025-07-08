@@ -47,8 +47,6 @@ export function ProductSettings({
   onSettingsChange,
   defaultSettings,
 }: ProductSettingsProps) {
-
-
   const form = useForm<SettingsForm>({
     resolver: zodResolver(settingsSchema),
     defaultValues: {
@@ -103,7 +101,7 @@ export function ProductSettings({
     <Card className="p-6 mb-6">
       <div className="flex items-center gap-2 mb-4">
         <Settings2 className="h-5 w-5" />
-        <h3 className="text-lg font-semibold">Product Settings</h3>
+        <h3 className="text-base font-semibold">Product Settings</h3>
       </div>
 
       <Form {...form}>
@@ -212,13 +210,13 @@ export function ProductSettings({
           </Button>
         </form>
       </Form>
-      
+
       <div className="mt-4 pt-4 border-t border-muted-foreground/20">
         <p className="text-xs text-muted-foreground">
           Requires OpenAI API key. Get yours at{" "}
-          <a 
-            href="https://platform.openai.com/api-keys" 
-            target="_blank" 
+          <a
+            href="https://platform.openai.com/api-keys"
+            target="_blank"
             rel="noopener noreferrer"
             className="text-primary hover:underline"
           >
