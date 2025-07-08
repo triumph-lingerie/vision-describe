@@ -45,17 +45,9 @@ async function crawlWithBasicMethod(url: string): Promise<CrawlResult> {
   // Step 2: Extract category with intelligent methods
   let category = '';
   
-  // Triumph-specific category extraction
-  if (url.includes('triumph.com')) {
-    category = getCategoryTriumph($);
-    console.log(`✓ Triumph category: "${category}"`);
-  }
-  
-  // Fallback to generic extraction
-  if (!category) {
-    category = extractCategoryBasic($);
-    console.log(`✓ Generic category: "${category}"`);
-  }
+  // Use intelligent category extraction for all sites
+  category = extractCategoryBasic($);
+  console.log(`✓ Category extracted: "${category}"`);
   
   // Smart category override for Triumph products if needed
   if (url.includes('triumph.com') && (!category || category.includes('slips for') || category.includes('£'))) {
@@ -290,15 +282,73 @@ function getImagesTriumph(html: string, productId: string): string[] {
 }
 
 function getCategoryTriumph($: cheerio.CheerioAPI): string {
-  // 1) visible text (removes the <meta>)
+  console.log('=== Triumph category extraction ===');
+  
+  // Strategy 1: Look for breadcrumb category (most reliable)
+  const breadcrumbCategory = $('.breadcrumb a').last().text().trim();
+  if (breadcrumbCategory && !breadcrumbCategory.includes('Triumph') && breadcrumbCategory.length > 2) {
+    console.log(`Found breadcrumb category: "${breadcrumbCategory}"`);
+    return normalizeCategory(breadcrumbCategory);
+  }
+  
+  // Strategy 2: Product type from structured data
+  const jsonLd = $('script[type="application/ld+json"]').text();
+  if (jsonLd) {
+    try {
+      const data = JSON.parse(jsonLd);
+      if (data.category || data.productType) {
+        const category = data.category || data.productType;
+        console.log(`Found JSON-LD category: "${category}"`);
+        return normalizeCategory(category);
+      }
+    } catch (e) {
+      // Continue to next strategy
+    }
+  }
+  
+  // Strategy 3: Meta property for product category
+  const ogType = $('meta[property="product:category"]').attr('content');
+  if (ogType) {
+    console.log(`Found OG product category: "${ogType}"`);
+    return normalizeCategory(ogType);
+  }
+  
+  // Strategy 4: H1 or product title analysis
+  const h1Text = $('h1').first().text().toLowerCase();
+  if (h1Text) {
+    if (h1Text.includes('non-wired') || h1Text.includes('unwired')) {
+      return 'Non-wired bra';
+    } else if (h1Text.includes('minimizer')) {
+      return 'Minimizer bra';
+    } else if (h1Text.includes('push-up')) {
+      return 'Push-up bra';
+    } else if (h1Text.includes('sports')) {
+      return 'Sports bra';
+    } else if (h1Text.includes('bra')) {
+      return 'Bra';
+    } else if (h1Text.includes('brief')) {
+      return 'Brief';
+    } else if (h1Text.includes('slip')) {
+      return 'Slip';
+    }
+  }
+  
+  // Strategy 5: Original headline method (fallback)
   const headline = $('.headline.headline--h9-rs').first();
   const textCat = headline.clone().find('meta').remove().end().text().trim();
-  if (textCat) return normalizeCategory(textCat);
+  if (textCat && !textCat.includes('£') && !textCat.includes('for')) {
+    console.log(`Found headline category: "${textCat}"`);
+    return normalizeCategory(textCat);
+  }
 
-  // 2) fallback to meta
+  // Strategy 6: Meta description analysis
   const metaCat = headline.find('meta[itemprop="description"]').attr('content');
-  if (metaCat) return normalizeCategory(metaCat);
+  if (metaCat && !metaCat.includes('£') && !metaCat.includes('for')) {
+    console.log(`Found meta category: "${metaCat}"`);
+    return normalizeCategory(metaCat);
+  }
 
+  console.log('No reliable category found');
   return '';
 }
 
@@ -330,23 +380,110 @@ function extractCategoryFromData(scrapedData: any): string {
 }
 
 function extractCategoryBasic($: cheerio.CheerioAPI): string {
-  console.log('=== Precise category extraction ===');
+  console.log('=== Intelligent category extraction ===');
   
-  // Use specialized Triumph extraction
-  const triumphCategory = getCategoryTriumph($);
-  if (triumphCategory) {
-    console.log(`Found Triumph category: "${triumphCategory}"`);
-    return triumphCategory;
+  // Strategy 1: Look for breadcrumb category (most reliable)
+  const breadcrumbCategory = $('.breadcrumb a').last().text().trim();
+  if (breadcrumbCategory && !breadcrumbCategory.includes('Triumph') && breadcrumbCategory.length > 2) {
+    console.log(`Found breadcrumb category: "${breadcrumbCategory}"`);
+    return normalizeCategory(breadcrumbCategory);
   }
   
-  // Fallback to general meta description for non-Triumph sites
+  // Strategy 2: Product type from structured data
+  const jsonLd = $('script[type="application/ld+json"]').text();
+  if (jsonLd) {
+    try {
+      const data = JSON.parse(jsonLd);
+      if (data.category || data.productType) {
+        const category = data.category || data.productType;
+        console.log(`Found JSON-LD category: "${category}"`);
+        return normalizeCategory(category);
+      }
+    } catch (e) {
+      // Continue to next strategy
+    }
+  }
+  
+  // Strategy 3: Meta property for product category
+  const ogType = $('meta[property="product:category"]').attr('content');
+  if (ogType) {
+    console.log(`Found OG product category: "${ogType}"`);
+    return normalizeCategory(ogType);
+  }
+  
+  // Strategy 4: H1 or product title analysis
+  const h1Text = $('h1').first().text().toLowerCase();
+  console.log(`H1 analysis: "${h1Text}"`);
+  if (h1Text) {
+    if (h1Text.includes('non-wired') || h1Text.includes('unwired')) {
+      console.log('Detected Non-wired bra from H1');
+      return 'Non-wired bra';
+    } else if (h1Text.includes('minimizer')) {
+      console.log('Detected Minimizer bra from H1');
+      return 'Minimizer bra';
+    } else if (h1Text.includes('push-up')) {
+      console.log('Detected Push-up bra from H1');
+      return 'Push-up bra';
+    } else if (h1Text.includes('sports')) {
+      console.log('Detected Sports bra from H1');
+      return 'Sports bra';
+    } else if (h1Text.includes('bra')) {
+      console.log('Detected Bra from H1');
+      return 'Bra';
+    } else if (h1Text.includes('brief')) {
+      console.log('Detected Brief from H1');
+      return 'Brief';
+    } else if (h1Text.includes('slip')) {
+      console.log('Detected Slip from H1');
+      return 'Slip';
+    }
+    console.log(`H1 contains no product category keywords`);
+  }
+  
+  // Strategy 4b: Try title tag as well
+  const titleText = $('title').text().toLowerCase();
+  console.log(`Title analysis: "${titleText}"`);
+  if (titleText && titleText !== h1Text) {
+    if (titleText.includes('non-wired') || titleText.includes('unwired')) {
+      console.log('Detected Non-wired bra from Title');
+      return 'Non-wired bra';
+    } else if (titleText.includes('minimizer')) {
+      console.log('Detected Minimizer bra from Title');
+      return 'Minimizer bra';
+    } else if (titleText.includes('push-up')) {
+      console.log('Detected Push-up bra from Title');
+      return 'Push-up bra';
+    } else if (titleText.includes('sports')) {
+      console.log('Detected Sports bra from Title');
+      return 'Sports bra';
+    } else if (titleText.includes('bra')) {
+      console.log('Detected Bra from Title');
+      return 'Bra';
+    } else if (titleText.includes('brief')) {
+      console.log('Detected Brief from Title');
+      return 'Brief';
+    } else if (titleText.includes('slip')) {
+      console.log('Detected Slip from Title');
+      return 'Slip';
+    }
+  }
+  
+  // Strategy 5: Original headline method (fallback) - avoid promotional content
+  const headline = $('.headline.headline--h9-rs').first();
+  const textCat = headline.clone().find('meta').remove().end().text().trim();
+  if (textCat && !textCat.includes('£') && !textCat.includes('for') && !textCat.includes('slips')) {
+    console.log(`Found clean headline category: "${textCat}"`);
+    return normalizeCategory(textCat);
+  }
+
+  // Strategy 6: General meta description (last resort)
   const generalMeta = $('meta[name="description"]').attr('content');
-  if (generalMeta) {
+  if (generalMeta && !generalMeta.includes('£') && !generalMeta.includes('for')) {
     console.log(`Using general meta description: "${generalMeta}"`);
     return normalizeCategory(generalMeta);
   }
   
-  console.log('No category found');
+  console.log('No reliable category found');
   return '';
 }
 
