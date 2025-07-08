@@ -1,10 +1,12 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Header } from "@/components/header";
 import { ArrowLeft } from "lucide-react";
 
 export default function Terms() {
   return (
     <div className="min-h-screen flex flex-col">
+      <Header />
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-8">
         <Link href="/">
           <Button variant="ghost" className="mb-6 p-0 h-auto text-muted-foreground hover:text-foreground">

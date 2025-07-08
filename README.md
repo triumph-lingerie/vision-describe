@@ -1,4 +1,4 @@
-# AI Product Description Generator
+# Vision Describe
 
 An advanced AI-powered tool that generates professional product descriptions from images using OpenAI's GPT-4 Vision API. Perfect for e-commerce businesses looking to create compelling, multilingual product content at scale.
 

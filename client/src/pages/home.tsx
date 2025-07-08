@@ -8,6 +8,7 @@ import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
 import { ProductSettings } from "@/components/product-settings";
 import { UrlCrawler } from "@/components/url-crawler";
+import { Header } from "@/components/header";
 import { HelpCircle, Plus, RefreshCw, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 
 export default function Home() {
@@ -46,7 +47,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col">
-
+      <Header />
 
       {/* Main Content */}
       <main className="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl py-8">
@@ -54,7 +55,7 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-medium text-foreground mb-2">
-            Product Description Generator
+            AI-Powered Product Descriptions
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
             Generate professional e-commerce descriptions from uploaded images or by crawling product URLs
