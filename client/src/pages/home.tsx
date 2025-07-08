@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
 import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
 import { ProductSettings } from "@/components/product-settings";
 import { UrlCrawler } from "@/components/url-crawler";
-import { ChevronDown, ChevronUp, HelpCircle, Plus, RefreshCw } from "lucide-react";
+import { HelpCircle, Plus, RefreshCw } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
@@ -16,7 +16,7 @@ export default function Home() {
     category: "",
     certifications: [{ value: "" }],
   });
-  const [isHowToOpen, setIsHowToOpen] = useState(false);
+
 
   const handleUploadComplete = (newResults: any[]) => {
     setResults((prev) => [...newResults, ...prev]);
@@ -47,125 +47,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* How to Use Section - Collapsible */}
-        <div className="mb-8">
-          <Collapsible open={isHowToOpen} onOpenChange={setIsHowToOpen}>
-            <CollapsibleTrigger asChild>
-              <Button 
-                variant="outline" 
-                className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted/80 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5" />
-                  <span className="font-medium">How to Use</span>
-                </div>
-                {isHowToOpen ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
-            
-            <CollapsibleContent className="mt-2">
-              <div className="bg-muted/50 rounded-lg p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
-                      <Plus className="h-4 w-4" />
-                      Create New Method
-                    </h3>
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        1
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground">Configure Settings</h4>
-                        <p className="text-sm text-muted-foreground">Set language, category, and certifications</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        2
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground">Upload Images</h4>
-                        <p className="text-sm text-muted-foreground">Upload 1-10 product images (max 10MB each)</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        3
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground">AI Analysis</h4>
-                        <p className="text-sm text-muted-foreground">AI analyzes your images using advanced vision technology</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        4
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground">Get Results</h4>
-                        <p className="text-sm text-muted-foreground">Receive professional product descriptions ready for marketing</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
-                      <RefreshCw className="h-4 w-4" />
-                      Enhance Existing Method
-                    </h3>
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        1
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground">Enter Product URL</h4>
-                        <p className="text-sm text-muted-foreground">Paste any product page URL from e-commerce sites</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        2
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground">Extract Images</h4>
-                        <p className="text-sm text-muted-foreground">AI crawls the page and extracts high-quality product images</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        3
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground">Auto-Detect Settings</h4>
-                        <p className="text-sm text-muted-foreground">Automatically detects product language and category</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        4
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground">Generate Enhanced Copy</h4>
-                        <p className="text-sm text-muted-foreground">Creates improved professional marketing descriptions</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+
 
         {/* Settings Section */}
         <div className="space-y-8">
@@ -183,6 +65,55 @@ export default function Home() {
             </TabsList>
             
             <TabsContent value="upload" className="space-y-6 mt-6">
+              {/* How to Use for Create New */}
+              <div className="bg-muted/50 rounded-lg p-6">
+                <h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4" />
+                  How to Use - Create New
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                      1
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground">Configure Settings</h4>
+                      <p className="text-sm text-muted-foreground">Set language, category, and certifications</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                      2
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground">Upload Images</h4>
+                      <p className="text-sm text-muted-foreground">Upload 1-10 product images (max 10MB each)</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                      3
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground">AI Analysis</h4>
+                      <p className="text-sm text-muted-foreground">AI analyzes your images using advanced vision technology</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                      4
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground">Get Results</h4>
+                      <p className="text-sm text-muted-foreground">Receive professional product descriptions ready for marketing</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               <ProductSettings 
                 onSettingsChange={handleSettingsChange}
                 defaultSettings={settings}
@@ -197,6 +128,55 @@ export default function Home() {
             </TabsContent>
             
             <TabsContent value="crawl" className="space-y-6 mt-6">
+              {/* How to Use for Enhance Existing */}
+              <div className="bg-muted/50 rounded-lg p-6">
+                <h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4" />
+                  How to Use - Enhance Existing
+                </h3>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                      1
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground">Enter Product URL</h4>
+                      <p className="text-sm text-muted-foreground">Paste any product page URL from e-commerce sites</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                      2
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground">Extract Images</h4>
+                      <p className="text-sm text-muted-foreground">AI crawls the page and extracts high-quality product images</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                      3
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground">Auto-Detect Settings</h4>
+                      <p className="text-sm text-muted-foreground">Automatically detects product language and category</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                      4
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-foreground">Generate Enhanced Copy</h4>
+                      <p className="text-sm text-muted-foreground">Creates improved professional marketing descriptions</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               <UrlCrawler 
                 onCrawlComplete={handleCrawlComplete}
               />
