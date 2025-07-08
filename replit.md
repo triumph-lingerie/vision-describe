@@ -177,6 +177,9 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Created banner/promotional image filtering to focus on actual product images
   - Successfully tested with Triumph product pages - correct category "Non-wired bra" extraction
   - System now accurately detects product type and generates professional descriptions
+  - Fixed capitalization in OpenAI descriptions: "This non-wired bra" instead of "This Non-wired bra"
+  - Improved image deduplication logic for Triumph carousel images
+  - Added carousel image pattern generation for Triumph products to capture multiple product views
 
 ## User Preferences
 

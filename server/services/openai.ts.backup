@@ -82,7 +82,7 @@ CONTENT REQUIREMENTS:
    - DO NOT change singular to plural based on image content - match the category text exactly!
    
    GRAMMAR BY LANGUAGE:
-   - English: "This ${category.toLowerCase()}" (singular) or "These ${category.toLowerCase()}" (plural)
+   - English: "This ${category}" (singular) or "These ${category}" (plural)
    - German: "Dieser/Diese/Dieses ${category}" (singular, check gender) or "Diese ${category}" (plural)
    - French: "Ce/Cette ${category}" (singular, check gender) or "Ces ${category}" (plural)
    - Italian: "Questo/Questa ${category}" (singular, check gender) or "Questi/Queste ${category}" (plural, check gender)
