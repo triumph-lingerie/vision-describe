@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertImageAnalysisSchema } from "@shared/schema";
 import { analyzeImage, analyzeImages } from "./services/openai";
+import { crawlProductPage } from "./services/crawler";
 import multer from "multer";
 import { z } from "zod";
 
@@ -177,6 +178,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching image analysis:", error);
       res.status(500).json({ message: "Failed to fetch image analysis" });
+    }
+  });
+
+  // URL crawling endpoint
+  app.post("/api/crawl", async (req: Request, res: Response) => {
+    try {
+      const { url } = req.body;
+
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ message: "URL is required" });
+      }
+
+      console.log(`Starting crawl for URL: ${url}`);
+
+      // Crawl the product page
+      const crawlResult = await crawlProductPage(url);
+
+      if (crawlResult.images.length === 0) {
+        return res.status(400).json({ 
+          message: "No product images found on this page" 
+        });
+      }
+
+      console.log(`Found ${crawlResult.images.length} images, generating description in ${crawlResult.language}`);
+
+      // Prepare images for OpenAI analysis
+      const imagesForAnalysis = crawlResult.images
+        .filter(img => img.base64 && img.mimeType)
+        .map(img => ({
+          base64: img.base64!,
+          mimeType: img.mimeType!
+        }));
+
+      if (imagesForAnalysis.length === 0) {
+        return res.status(400).json({ 
+          message: "Could not process any images from the page" 
+        });
+      }
+
+      // Generate description using OpenAI
+      let description: string;
+      if (imagesForAnalysis.length === 1) {
+        description = await analyzeImage(
+          imagesForAnalysis[0].base64,
+          imagesForAnalysis[0].mimeType,
+          crawlResult.language,
+          crawlResult.category
+        );
+      } else {
+        description = await analyzeImages(
+          imagesForAnalysis,
+          crawlResult.language,
+          crawlResult.category
+        );
+      }
+
+      // Store the analysis result
+      const analysisData = {
+        filename: `crawled_${Date.now()}`,
+        originalName: crawlResult.title || url,
+        mimeType: 'text/html',
+        fileSize: 0,
+        description,
+        language: crawlResult.language,
+        category: crawlResult.category
+      };
+
+      const savedAnalysis = await storage.createImageAnalysis(analysisData);
+
+      // Return the result in the same format as image upload
+      const result = {
+        id: savedAnalysis.id,
+        originalName: crawlResult.title || "Crawled Product",
+        description,
+        language: crawlResult.language,
+        category: crawlResult.category,
+        allImages: crawlResult.images.map(img => img.url),
+        isMultiImage: crawlResult.images.length > 1,
+        imageCount: crawlResult.images.length,
+        sourceUrl: url,
+        createdAt: savedAnalysis.createdAt
+      };
+
+      res.json({ results: [result] });
+
+    } catch (error) {
+      console.error("Error in URL crawling:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to crawl URL" 
+      });
     }
   });
 

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
 import { ProductSettings } from "@/components/product-settings";
-
-import { ChevronDown, ChevronUp, HelpCircle } from "lucide-react";
+import { UrlCrawler } from "@/components/url-crawler";
+import { ChevronDown, ChevronUp, HelpCircle, Upload, Globe } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
@@ -18,6 +19,10 @@ export default function Home() {
   const [isHowToOpen, setIsHowToOpen] = useState(false);
 
   const handleUploadComplete = (newResults: any[]) => {
+    setResults((prev) => [...newResults, ...prev]);
+  };
+
+  const handleCrawlComplete = (newResults: any[]) => {
     setResults((prev) => [...newResults, ...prev]);
   };
 
@@ -38,7 +43,7 @@ export default function Home() {
             Product Description Generator
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-            Generate professional e-commerce descriptions from product images using AI
+            Generate professional e-commerce descriptions from uploaded images or by crawling product URLs
           </p>
         </div>
 
@@ -66,13 +71,17 @@ export default function Home() {
               <div className="bg-muted/50 rounded-lg p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
+                    <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
+                      <Upload className="h-4 w-4" />
+                      Upload Images Method
+                    </h3>
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
                         1
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground">Select Language</h3>
-                        <p className="text-sm text-muted-foreground">Choose the target language for your product description</p>
+                        <h4 className="font-medium text-foreground">Configure Settings</h4>
+                        <p className="text-sm text-muted-foreground">Set language, category, and certifications</p>
                       </div>
                     </div>
                     
@@ -81,30 +90,34 @@ export default function Home() {
                         2
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground">Enter Product Category</h3>
-                        <p className="text-sm text-muted-foreground">Specify the product type (e.g., bra, panties, thong, bodysuit)</p>
+                        <h4 className="font-medium text-foreground">Upload Images</h4>
+                        <p className="text-sm text-muted-foreground">Upload 1-10 product images (max 10MB each)</p>
                       </div>
                     </div>
                   </div>
                   
                   <div className="space-y-4">
+                    <h3 className="font-medium text-foreground mb-3 flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      URL Crawling Method
+                    </h3>
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        3
+                        1
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground">Add Certifications</h3>
-                        <p className="text-sm text-muted-foreground">Optional: Add quality certifications (e.g., OEKO-TEX®)</p>
+                        <h4 className="font-medium text-foreground">Enter Product URL</h4>
+                        <p className="text-sm text-muted-foreground">Paste any product page URL</p>
                       </div>
                     </div>
                     
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        4
+                        2
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground">Upload Images</h3>
-                        <p className="text-sm text-muted-foreground">Upload 1-10 high-quality product images (max 10MB each)</p>
+                        <h4 className="font-medium text-foreground">Auto-Analysis</h4>
+                        <p className="text-sm text-muted-foreground">AI detects language, category, and analyzes images automatically</p>
                       </div>
                     </div>
                   </div>
@@ -114,19 +127,41 @@ export default function Home() {
           </Collapsible>
         </div>
 
-        {/* Settings and Upload Section */}
+        {/* Settings Section */}
         <div className="space-y-8">
-          <ProductSettings 
-            onSettingsChange={handleSettingsChange}
-            defaultSettings={settings}
-          />
-          
-          <ImageUpload 
-            onUploadComplete={handleUploadComplete}
-            language={settings.language}
-            category={settings.category}
-            certifications={settings.certifications}
-          />
+          {/* Input Method Tabs */}
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="upload" className="flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Upload Images
+              </TabsTrigger>
+              <TabsTrigger value="crawl" className="flex items-center gap-2">
+                <Globe className="h-4 w-4" />
+                Crawl URL
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upload" className="space-y-6 mt-6">
+              <ProductSettings 
+                onSettingsChange={handleSettingsChange}
+                defaultSettings={settings}
+              />
+              
+              <ImageUpload 
+                onUploadComplete={handleUploadComplete}
+                language={settings.language}
+                category={settings.category}
+                certifications={settings.certifications}
+              />
+            </TabsContent>
+            
+            <TabsContent value="crawl" className="space-y-6 mt-6">
+              <UrlCrawler 
+                onCrawlComplete={handleCrawlComplete}
+              />
+            </TabsContent>
+          </Tabs>
 
           {/* Results Section */}
           {results.length > 0 && (

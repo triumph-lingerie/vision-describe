@@ -159,6 +159,16 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Eliminated app title, theme toggle, and all header elements
   - Application now starts directly with main content
   - Cleaned up unused theme toggle functions and imports
+- July 08, 2025: Added URL crawling functionality
+  - Implemented web crawling service with Cheerio and Axios for product page analysis
+  - Added automatic language detection from URL patterns and HTML attributes
+  - Created category extraction from specific HTML elements (div.headline.headline--h9-rs)
+  - Built image discovery and processing from product pages with base64 conversion
+  - Added new /api/crawl endpoint for URL-based product analysis
+  - Created UrlCrawler component with clean input interface and error handling
+  - Implemented tab interface to switch between image upload and URL crawling methods
+  - Updated "How to Use" section to explain both input methods
+  - Enhanced application to support dual input: direct image upload or URL crawling
 
 ## User Preferences
 
