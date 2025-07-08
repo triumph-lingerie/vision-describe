@@ -116,18 +116,8 @@ export default function Home() {
                         2
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground">Auto-Extract Images</h4>
-                        <p className="text-sm text-muted-foreground">AI extracts high-quality product images from the page</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                        3
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-foreground">Generate Description</h4>
-                        <p className="text-sm text-muted-foreground">Creates professional marketing copy with detected language and category</p>
+                        <h4 className="font-medium text-foreground">AI Auto-Analysis</h4>
+                        <p className="text-sm text-muted-foreground">Extracts images, detects language/category, and generates professional descriptions</p>
                       </div>
                     </div>
                   </div>
