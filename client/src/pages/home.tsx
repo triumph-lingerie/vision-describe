@@ -55,13 +55,10 @@ export default function Home() {
         {/* Hero Section */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-medium text-foreground mb-2">
-            AI-Powered Product Descriptions
+            Generate professional e-commerce descriptions from uploaded images or by crawling product URLs
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-            Generate professional e-commerce descriptions from uploaded images or by crawling product URLs
-          </p>
-          <p className="text-xs text-muted-foreground/80 mt-2">
-            AI-generated content - review before use
+            Transform product images into compelling marketing content for your e-commerce store. Upload photos directly or crawl existing product pages to enhance descriptions with AI-powered visual analysis.
           </p>
         </div>
 
@@ -153,6 +150,10 @@ export default function Home() {
                 onSettingsChange={handleSettingsChange}
                 defaultSettings={settings}
               />
+              
+              <p className="text-xs text-muted-foreground/80 text-center">
+                AI-generated content - review before use
+              </p>
               
               {isSettingsSaved && (
                 <ImageUpload 
