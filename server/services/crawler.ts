@@ -219,6 +219,9 @@ function normalizeCategory(raw: string): string {
     'sports bra': 'Sports bra',
     'push-up bra': 'Push-up bra',
     'tai knickers': 'Knickers',
+    'hipster knickers': 'Knickers',
+    'high-waisted knickers': 'Knickers',
+    'brazilian knickers': 'Knickers',
     'brief': 'Brief',
     'slip': 'Slip',
     'bodysuit': 'Bodysuit',
@@ -386,7 +389,7 @@ function extractCategoryBasic($: cheerio.CheerioAPI): string {
   const breadcrumbCategory = $('.breadcrumb a').last().text().trim();
   if (breadcrumbCategory && !breadcrumbCategory.includes('Triumph') && breadcrumbCategory.length > 2) {
     console.log(`Found breadcrumb category: "${breadcrumbCategory}"`);
-    return normalizeCategory(breadcrumbCategory);
+    return breadcrumbCategory.toLowerCase();
   }
   
   // Strategy 2: Product type from structured data
@@ -397,7 +400,7 @@ function extractCategoryBasic($: cheerio.CheerioAPI): string {
       if (data.category || data.productType) {
         const category = data.category || data.productType;
         console.log(`Found JSON-LD category: "${category}"`);
-        return normalizeCategory(category);
+        return category.toLowerCase();
       }
     } catch (e) {
       // Continue to next strategy
@@ -408,79 +411,47 @@ function extractCategoryBasic($: cheerio.CheerioAPI): string {
   const ogType = $('meta[property="product:category"]').attr('content');
   if (ogType) {
     console.log(`Found OG product category: "${ogType}"`);
-    return normalizeCategory(ogType);
+    return ogType.toLowerCase();
   }
   
-  // Strategy 4: H1 or product title analysis
-  const h1Text = $('h1').first().text().toLowerCase();
+  // Strategy 4: H1 or product title analysis - extract full text, not keywords
+  const h1Text = $('h1').first().text().trim();
   console.log(`H1 analysis: "${h1Text}"`);
-  if (h1Text) {
-    if (h1Text.includes('non-wired') || h1Text.includes('unwired')) {
-      console.log('Detected Non-wired bra from H1');
-      return 'Non-wired bra';
-    } else if (h1Text.includes('minimizer')) {
-      console.log('Detected Minimizer bra from H1');
-      return 'Minimizer bra';
-    } else if (h1Text.includes('push-up')) {
-      console.log('Detected Push-up bra from H1');
-      return 'Push-up bra';
-    } else if (h1Text.includes('sports')) {
-      console.log('Detected Sports bra from H1');
-      return 'Sports bra';
-    } else if (h1Text.includes('bra')) {
-      console.log('Detected Bra from H1');
-      return 'Bra';
-    } else if (h1Text.includes('brief')) {
-      console.log('Detected Brief from H1');
-      return 'Brief';
-    } else if (h1Text.includes('slip')) {
-      console.log('Detected Slip from H1');
-      return 'Slip';
-    }
-    console.log(`H1 contains no product category keywords`);
+  if (h1Text && h1Text.length > 2 && !h1Text.includes('£') && !h1Text.includes('for')) {
+    console.log('Using H1 text as category');
+    return h1Text.toLowerCase();
   }
   
   // Strategy 4b: Try title tag as well
-  const titleText = $('title').text().toLowerCase();
+  const titleText = $('title').text().trim();
   console.log(`Title analysis: "${titleText}"`);
-  if (titleText && titleText !== h1Text) {
-    if (titleText.includes('non-wired') || titleText.includes('unwired')) {
-      console.log('Detected Non-wired bra from Title');
-      return 'Non-wired bra';
-    } else if (titleText.includes('minimizer')) {
-      console.log('Detected Minimizer bra from Title');
-      return 'Minimizer bra';
-    } else if (titleText.includes('push-up')) {
-      console.log('Detected Push-up bra from Title');
-      return 'Push-up bra';
-    } else if (titleText.includes('sports')) {
-      console.log('Detected Sports bra from Title');
-      return 'Sports bra';
-    } else if (titleText.includes('bra')) {
-      console.log('Detected Bra from Title');
-      return 'Bra';
-    } else if (titleText.includes('brief')) {
-      console.log('Detected Brief from Title');
-      return 'Brief';
-    } else if (titleText.includes('slip')) {
-      console.log('Detected Slip from Title');
-      return 'Slip';
-    }
+  if (titleText && titleText !== h1Text && titleText.length > 2 && !titleText.includes('£') && !titleText.includes('for')) {
+    console.log('Using title text as category');
+    return titleText.toLowerCase();
   }
   
-  // Strategy 5: Original headline method (fallback) - avoid promotional content
+  // Strategy 5: Extract category from headline - no normalization, just lowercase
   const headline = $('.headline.headline--h9-rs').first();
+  
+  // First try to get the meta itemprop="description" content (most reliable)
+  const metaCat = headline.find('meta[itemprop="description"]').attr('content');
+  if (metaCat && !metaCat.includes('£') && !metaCat.includes('for') && !metaCat.includes('slips')) {
+    console.log(`Found meta itemprop category: "${metaCat}"`);
+    return metaCat.toLowerCase();
+  }
+  
+  // Fallback to headline text content (excluding meta tags)
   const textCat = headline.clone().find('meta').remove().end().text().trim();
   if (textCat && !textCat.includes('£') && !textCat.includes('for') && !textCat.includes('slips')) {
     console.log(`Found clean headline category: "${textCat}"`);
-    return normalizeCategory(textCat);
+    return textCat.toLowerCase();
   }
 
   // Strategy 6: General meta description (last resort)
   const generalMeta = $('meta[name="description"]').attr('content');
   if (generalMeta && !generalMeta.includes('£') && !generalMeta.includes('for')) {
     console.log(`Using general meta description: "${generalMeta}"`);
-    return normalizeCategory(generalMeta);
+    return generalMeta.toLowerCase();
   }
   
   console.log('No reliable category found');
