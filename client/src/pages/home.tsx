@@ -8,10 +8,11 @@ import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
 import { ProductSettings } from "@/components/product-settings";
 import { UrlCrawler } from "@/components/url-crawler";
-import { HelpCircle, Plus, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+import { HelpCircle, Plus, RefreshCw, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 
 export default function Home() {
-  const [results, setResults] = useState<any[]>([]);
+  const [createResults, setCreateResults] = useState<any[]>([]);
+  const [enhanceResults, setEnhanceResults] = useState<any[]>([]);
   const [settings, setSettings] = useState({ 
     language: "en", 
     category: "",
@@ -23,11 +24,19 @@ export default function Home() {
 
 
   const handleUploadComplete = (newResults: any[]) => {
-    setResults((prev) => [...newResults, ...prev]);
+    setCreateResults((prev) => [...newResults, ...prev]);
   };
 
   const handleCrawlComplete = (newResults: any[]) => {
-    setResults((prev) => [...newResults, ...prev]);
+    setEnhanceResults((prev) => [...newResults, ...prev]);
+  };
+
+  const clearCreateResults = () => {
+    setCreateResults([]);
+  };
+
+  const clearEnhanceResults = () => {
+    setEnhanceResults([]);
   };
 
   const handleSettingsChange = (newSettings: any) => {
@@ -224,12 +233,49 @@ export default function Home() {
             </TabsContent>
           </Tabs>
 
-          {/* Results Section */}
-          {results.length > 0 && (
+          {/* Create New Results Section */}
+          {createResults.length > 0 && (
             <div className="space-y-4">
-              <h2 className="text-lg font-medium text-foreground">Results</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-medium text-foreground">Create New Results</h2>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearCreateResults}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Clear Results
+                </Button>
+              </div>
               <div className="space-y-6">
-                {results.map((result, index) => (
+                {createResults.map((result, index) => (
+                  <ImageResult
+                    key={result.id || `${result.originalName}-${index}`}
+                    result={result}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Enhance Existing Results Section */}
+          {enhanceResults.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-medium text-foreground">Enhance Existing Results</h2>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearEnhanceResults}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Clear Results
+                </Button>
+              </div>
+              <div className="space-y-6">
+                {enhanceResults.map((result, index) => (
                   <ImageResult
                     key={result.id || `${result.originalName}-${index}`}
                     result={result}
