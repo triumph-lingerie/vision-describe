@@ -94,6 +94,26 @@ export default function Home() {
                         <p className="text-sm text-muted-foreground">Upload 1-10 product images (max 10MB each)</p>
                       </div>
                     </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-foreground">AI Analysis</h4>
+                        <p className="text-sm text-muted-foreground">AI analyzes your images using advanced vision technology</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                        4
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-foreground">Get Results</h4>
+                        <p className="text-sm text-muted-foreground">Receive professional product descriptions ready for marketing</p>
+                      </div>
+                    </div>
                   </div>
                   
                   <div className="space-y-4">
@@ -116,8 +136,28 @@ export default function Home() {
                         2
                       </div>
                       <div>
-                        <h4 className="font-medium text-foreground">AI Auto-Analysis</h4>
-                        <p className="text-sm text-muted-foreground">Extracts images, detects language/category, and generates professional descriptions</p>
+                        <h4 className="font-medium text-foreground">Extract Images</h4>
+                        <p className="text-sm text-muted-foreground">AI crawls the page and extracts high-quality product images</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                        3
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-foreground">Auto-Detect Settings</h4>
+                        <p className="text-sm text-muted-foreground">Automatically detects product language and category</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                        4
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-foreground">Generate Enhanced Copy</h4>
+                        <p className="text-sm text-muted-foreground">Creates improved professional marketing descriptions</p>
                       </div>
                     </div>
                   </div>
