@@ -134,11 +134,11 @@ export default function Home() {
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="upload" className="flex items-center gap-2">
                 <Upload className="h-4 w-4" />
-                Create New One
+                Create New
               </TabsTrigger>
               <TabsTrigger value="crawl" className="flex items-center gap-2">
                 <Globe className="h-4 w-4" />
-                Improve Existing
+                Enhance Existing
               </TabsTrigger>
             </TabsList>
             
