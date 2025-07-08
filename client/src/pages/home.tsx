@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 import { ImageUpload } from "@/components/image-upload";
 import { ImageResult } from "@/components/image-result";
 import { ProductSettings } from "@/components/product-settings";
 import { UrlCrawler } from "@/components/url-crawler";
-import { HelpCircle, Plus, RefreshCw } from "lucide-react";
+import { HelpCircle, Plus, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function Home() {
   const [results, setResults] = useState<any[]>([]);
@@ -16,6 +17,8 @@ export default function Home() {
     category: "",
     certifications: [{ value: "" }],
   });
+  const [isCreateHowToOpen, setIsCreateHowToOpen] = useState(false);
+  const [isEnhanceHowToOpen, setIsEnhanceHowToOpen] = useState(false);
 
 
   const handleUploadComplete = (newResults: any[]) => {
@@ -66,53 +69,70 @@ export default function Home() {
             
             <TabsContent value="upload" className="space-y-6 mt-6">
               {/* How to Use for Create New */}
-              <div className="bg-muted/50 rounded-lg p-6">
-                <h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4" />
-                  How to Use - Create New
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                      1
+              <Collapsible open={isCreateHowToOpen} onOpenChange={setIsCreateHowToOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted/80 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <HelpCircle className="h-4 w-4" />
+                      <span className="font-medium">How to Use</span>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">Configure Settings</h4>
-                      <p className="text-sm text-muted-foreground">Set language, category, and certifications</p>
+                    {isCreateHowToOpen ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-2">
+                  <div className="bg-muted/50 rounded-lg p-6">
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                          1
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground">Configure Settings</h4>
+                          <p className="text-sm text-muted-foreground">Choose language, product category, and any certifications</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                          2
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground">Upload Images</h4>
+                          <p className="text-sm text-muted-foreground">Drag & drop or select 1-10 product photos (max 10MB each)</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                          3
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground">AI Analysis</h4>
+                          <p className="text-sm text-muted-foreground">AI examines your photos and identifies key product features</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                          4
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground">Get Results</h4>
+                          <p className="text-sm text-muted-foreground">Download professional descriptions ready for your website</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                      2
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">Upload Images</h4>
-                      <p className="text-sm text-muted-foreground">Upload 1-10 product images (max 10MB each)</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                      3
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">AI Analysis</h4>
-                      <p className="text-sm text-muted-foreground">AI analyzes your images using advanced vision technology</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                      4
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">Get Results</h4>
-                      <p className="text-sm text-muted-foreground">Receive professional product descriptions ready for marketing</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
               
               <ProductSettings 
                 onSettingsChange={handleSettingsChange}
@@ -129,53 +149,70 @@ export default function Home() {
             
             <TabsContent value="crawl" className="space-y-6 mt-6">
               {/* How to Use for Enhance Existing */}
-              <div className="bg-muted/50 rounded-lg p-6">
-                <h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-                  <HelpCircle className="h-4 w-4" />
-                  How to Use - Enhance Existing
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                      1
+              <Collapsible open={isEnhanceHowToOpen} onOpenChange={setIsEnhanceHowToOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full flex items-center justify-between p-4 bg-muted/50 hover:bg-muted/80 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <HelpCircle className="h-4 w-4" />
+                      <span className="font-medium">How to Use</span>
                     </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">Enter Product URL</h4>
-                      <p className="text-sm text-muted-foreground">Paste any product page URL from e-commerce sites</p>
+                    {isEnhanceHowToOpen ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </CollapsibleTrigger>
+                
+                <CollapsibleContent className="mt-2">
+                  <div className="bg-muted/50 rounded-lg p-6">
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                          1
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground">Enter Product URL</h4>
+                          <p className="text-sm text-muted-foreground">Copy and paste any e-commerce product page link</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                          2
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground">Extract Images</h4>
+                          <p className="text-sm text-muted-foreground">AI scans the page and finds all product photos automatically</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                          3
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground">Auto-Detect Settings</h4>
+                          <p className="text-sm text-muted-foreground">Smart detection of product type, language, and category</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+                          4
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground">Generate Enhanced Copy</h4>
+                          <p className="text-sm text-muted-foreground">Create better marketing descriptions than the original</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                      2
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">Extract Images</h4>
-                      <p className="text-sm text-muted-foreground">AI crawls the page and extracts high-quality product images</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                      3
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">Auto-Detect Settings</h4>
-                      <p className="text-sm text-muted-foreground">Automatically detects product language and category</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-                      4
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-foreground">Generate Enhanced Copy</h4>
-                      <p className="text-sm text-muted-foreground">Creates improved professional marketing descriptions</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                </CollapsibleContent>
+              </Collapsible>
               
               <UrlCrawler 
                 onCrawlComplete={handleCrawlComplete}
