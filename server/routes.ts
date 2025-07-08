@@ -7,6 +7,30 @@ import { crawlProductPage } from "./services/crawler";
 import multer from "multer";
 import { z } from "zod";
 
+// Simple rate limiting
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 10; // requests per hour
+
+function checkRateLimit(req: Request, res: Response): boolean {
+  const clientIP = req.ip || 'unknown';
+  const now = Date.now();
+  const hourMs = 60 * 60 * 1000;
+  
+  const existing = rateLimitStore.get(clientIP);
+  if (!existing || now > existing.resetTime) {
+    rateLimitStore.set(clientIP, { count: 1, resetTime: now + hourMs });
+    return true;
+  }
+  
+  if (existing.count >= RATE_LIMIT) {
+    res.status(429).json({ error: "Rate limit exceeded. Please try again later." });
+    return false;
+  }
+  
+  existing.count++;
+  return true;
+}
+
 // Configure multer for memory storage
 const upload = multer({ 
   storage: multer.memoryStorage(),
@@ -14,11 +38,20 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only image files are allowed'));
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    const suspiciousNames = ['test', 'sample', 'placeholder', 'fake', 'adult', 'nsfw'];
+    
+    if (!allowedTypes.includes(file.mimetype)) {
+      cb(new Error('Only JPEG, PNG, and WebP images are allowed'));
+      return;
     }
+    
+    if (suspiciousNames.some(word => file.originalname.toLowerCase().includes(word))) {
+      cb(new Error('Inappropriate file name detected'));
+      return;
+    }
+    
+    cb(null, true);
   }
 });
 
@@ -26,6 +59,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Upload and analyze images
   app.post("/api/images/analyze", upload.array('images', 10), async (req: Request, res: Response) => {
+    if (!checkRateLimit(req, res)) return;
+    
+    // Basic audit logging
+    console.log(`[${new Date().toISOString()}] Image analysis request from ${req.ip} - ${(req.files as Express.Multer.File[])?.length || 0} files`);
+    
     try {
       const files = req.files as Express.Multer.File[];
       const { 
@@ -183,6 +221,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // URL crawling endpoint
   app.post("/api/crawl", async (req: Request, res: Response) => {
+    if (!checkRateLimit(req, res)) return;
+    
+    // Basic audit logging
+    console.log(`[${new Date().toISOString()}] URL crawl request from ${req.ip} - URL: ${req.body.url}`);
+    
     try {
       const { url } = req.body;
 

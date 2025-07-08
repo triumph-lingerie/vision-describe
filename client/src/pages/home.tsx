@@ -59,6 +59,9 @@ export default function Home() {
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
             Generate professional e-commerce descriptions from uploaded images or by crawling product URLs
           </p>
+          <p className="text-xs text-muted-foreground/80 mt-2">
+            AI-generated content - review before use
+          </p>
         </div>
 
 
@@ -306,13 +309,25 @@ export default function Home() {
             </div>
             
             <div className="flex items-center space-x-6">
+              <Link 
+                href="/privacy"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
+              >
+                Privacy
+              </Link>
+              <Link 
+                href="/terms"
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
+              >
+                Terms
+              </Link>
               <a 
                 href="https://platform.openai.com/docs/guides/images-vision?api-mode=responses" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
               >
-                API Documentation
+                API Docs
               </a>
             </div>
           </div>

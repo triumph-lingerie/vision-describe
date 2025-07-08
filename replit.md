@@ -206,6 +206,16 @@ This is a full-stack web application specifically designed for e-commerce busine
   - Added API key requirements notice in both instruction sections with direct link to OpenAI platform
   - Instructions are now hidden by default for cleaner interface, expandable with chevron icons
   - Clear 4-step process explanation for both upload and URL crawling workflows
+- July 08, 2025: Enhanced security and compliance for public deployment
+  - Added Privacy Policy and Terms of Service pages with GDPR compliance
+  - Implemented rate limiting (10 requests/hour per IP) to prevent abuse
+  - Added content filtering for suspicious file names and inappropriate content
+  - Separated results between "Create New" and "Enhance Existing" workflows
+  - Added "Clear Results" buttons for each section with trash icon
+  - Upload interface now appears only after settings are configured
+  - Implemented basic audit logging for security monitoring
+  - Added subtle AI disclaimer in hero section without compromising minimalist design
+  - Footer now includes Privacy and Terms links while maintaining clean aesthetic
 
 ## User Preferences
 
