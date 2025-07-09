@@ -272,7 +272,7 @@ export default function Changelog() {
         <div className="max-w-3xl mx-auto px-6 py-12">
           <div className="mb-12">
             <h1 className="text-2xl font-medium mb-3">Changelog</h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
+            <p className="text-muted-foreground  text-sm">
               Complete history of updates and improvements to VisionDescribe
             </p>
           </div>
@@ -302,7 +302,7 @@ export default function Changelog() {
                     </div>
 
                     <h3 className="text-lg font-medium mb-1">{entry.title}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    <p className="text-sm text-muted-foreground  mb-4">
                       {entry.description}
                     </p>
 
@@ -323,7 +323,7 @@ export default function Changelog() {
           </div>
 
           <div className="mt-16 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-            <p className="text-xs text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-muted-foreground ">
               This changelog is updated with each significant deployment. For
               the latest version of the code, check the GitHub repository.
             </p>
