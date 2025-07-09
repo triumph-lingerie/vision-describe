@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import FirecrawlApp from '@mendable/firecrawl-js';
 
 export interface CrawlResult {
   url: string;
@@ -20,11 +21,195 @@ export async function crawlProductPage(url: string): Promise<CrawlResult> {
   console.log(`=== STARTING INTELLIGENT CRAWLER ===`);
   console.log(`URL: ${url}`);
   
-  // Direct scraping - reliable and fast
-  return await crawlWithBasicMethod(url);
+  try {
+    // First attempt with Firecrawl optimized configuration
+    console.log('Attempting Firecrawl extraction first...');
+    const result = await crawlWithFirecrawl(url);
+    console.log('=== FIRECRAWL SUCCESS ===');
+    console.log(`✓ Language: ${result.language}`);
+    console.log(`✓ Category: "${result.category}"`);
+    console.log(`✓ Images: ${result.images.length} processed`);
+    console.log(`✓ Title: "${result.title}"`);
+    return result;
+  } catch (error) {
+    console.log('Firecrawl failed, falling back to basic method...');
+    console.error('FirecrawlError:', error);
+    
+    // Fallback to basic method if Firecrawl fails
+    const result = await crawlWithBasicMethod(url);
+    console.log('=== BASIC METHOD SUCCESS ===');
+    console.log(`✓ Language: ${result.language}`);
+    console.log(`✓ Category: "${result.category}"`);
+    console.log(`✓ Images: ${result.images.length} processed`);
+    console.log(`✓ Title: "${result.title}"`);
+    return result;
+  }
 }
 
+async function crawlWithFirecrawl(url: string): Promise<CrawlResult> {
+  console.log('=== STARTING FIRECRAWL OPTIMIZED EXTRACTION ===');
+  
+  const app = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_API_KEY });
+  
+  const response = await app.scrapeUrl(url, {
+    formats: ['json', 'html'],
+    onlyMainContent: true,
+    includeTags: ['.product-detail.product-wrapper'],
+    excludeTags: ['.pdp__recommendations', '.recently-viewed', '.upsell'],
+    timeout: 120000,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    },
+    jsonOptions: {
+      prompt: `Extract the product category ("category") and an array "images" with the main carousel image URLs (max 8 items). 
+              Only consider the container .product-detail.product-wrapper, ignore anything inside sections with class names containing 
+              "recommendation", "recently-viewed" or "upsell".
+              Also return "title" and detected "language" (ISO-2).
+              Return a JSON object with:
+              - "category": the product category (e.g. "Non-wired bra", "Minimizer bra", "Brief", "Slip")
+              - "images": an array of the main product image URLs (max 8 items)
+              - "title": the product title/name
+              - "language": detected language code (e.g. "en", "it", "de", "fr")`
+    },
+    actions: [
+      { type: 'wait', milliseconds: 1500 },
+      { type: 'scroll', direction: 'down' }
+    ]
+  });
 
+  console.log('Firecrawl response received');
+  
+  let category = '';
+  let images: Array<{url: string, alt?: string, base64?: string, mimeType?: string}> = [];
+  let title = '';
+  let language = 'en';
+  
+  // Extract data from JSON response
+  if (response.json && typeof response.json === 'object') {
+    const data = response.json as any;
+    console.log('Firecrawl JSON data:', JSON.stringify(data, null, 2));
+    
+    // Extract category
+    if (data.category) {
+      category = normalizeCategory(data.category);
+      console.log(`✓ Firecrawl category: "${category}"`);
+    }
+    
+    // Extract title
+    if (data.title) {
+      title = data.title;
+      console.log(`✓ Firecrawl title: "${title}"`);
+    }
+    
+    // Extract language
+    if (data.language) {
+      language = mapLanguageCode(data.language);
+      console.log(`✓ Firecrawl language: "${language}"`);
+    }
+    
+    // Extract images
+    if (data.images && Array.isArray(data.images)) {
+      console.log(`✓ Firecrawl found ${data.images.length} images`);
+      
+      // Filter and process images
+      const validImageUrls = data.images
+        .filter((img: any) => {
+          const imgUrl = typeof img === 'string' ? img : img.url;
+          return imgUrl && 
+                 imgUrl.includes('contentstore.triumph.com') && 
+                 !imgUrl.includes('data:') &&
+                 !imgUrl.includes('placeholder');
+        })
+        .map((img: any) => typeof img === 'string' ? img : img.url)
+        .slice(0, 8); // Limit to 8 images as per prompt
+      
+      console.log(`Processing ${validImageUrls.length} valid images...`);
+      images = await processImages(validImageUrls);
+    }
+  }
+  
+  // Fallback to HTML parsing if JSON data insufficient
+  if (!category || images.length === 0) {
+    console.log('JSON data insufficient, parsing HTML fallback...');
+    const $ = cheerio.load(response.html || '');
+    
+    // Detect language from HTML if not provided
+    if (!language || language === 'en') {
+      language = detectLanguageFromData(url, { html: response.html });
+      console.log(`✓ HTML language detection: "${language}"`);
+    }
+    
+    // Extract category from HTML if not provided
+    if (!category) {
+      category = extractCategoryFromData({ html: response.html });
+      if (!category) {
+        category = extractCategoryBasic($);
+      }
+      console.log(`✓ HTML category extraction: "${category}"`);
+    }
+    
+    // Extract title from HTML if not provided
+    if (!title) {
+      title = $('h1').first().text().trim() || $('title').text().trim();
+      console.log(`✓ HTML title extraction: "${title}"`);
+    }
+    
+    // Extract images from HTML if not provided
+    if (images.length === 0) {
+      const productId = getProductId(url);
+      if (productId && url.includes('triumph.com')) {
+        const imageUrls = getImagesTriumph(response.html || '', productId);
+        console.log(`Found ${imageUrls.length} HTML images`);
+        images = await processImages(imageUrls);
+      }
+    }
+  }
+
+  // Smart category override for Triumph products if needed
+  if (url.includes('triumph.com') && (!category || category.includes('slips for') || category.includes('£'))) {
+    console.log(`Smart override needed for Triumph - Current: "${category}"`);
+    
+    const htmlTitle = title.toLowerCase();
+    const htmlContent = response.html?.toLowerCase() || '';
+    
+    if (htmlTitle.includes('bra') || htmlContent.includes('bra')) {
+      if (htmlTitle.includes('non-wired') || htmlContent.includes('non-wired')) {
+        category = 'Non-wired bra';
+      } else if (htmlTitle.includes('minimizer') || htmlContent.includes('minimizer')) {
+        category = 'Minimizer bra';
+      } else if (htmlTitle.includes('push-up') || htmlContent.includes('push-up')) {
+        category = 'Push-up bra';
+      } else if (htmlTitle.includes('sports') || htmlContent.includes('sports')) {
+        category = 'Sports bra';
+      } else {
+        category = 'Bra';
+      }
+    } else if (htmlTitle.includes('brief') || htmlContent.includes('brief')) {
+      category = 'Brief';
+    } else if (htmlTitle.includes('slip') || htmlContent.includes('slip')) {
+      category = 'Slip';
+    } else {
+      category = 'Lingerie';
+    }
+    console.log(`✓ Smart override applied: "${category}"`);
+  }
+
+  console.log('=== FIRECRAWL EXTRACTION COMPLETED ===');
+  console.log(`✓ Language: ${language}`);
+  console.log(`✓ Category: "${category}"`);
+  console.log(`✓ Images: ${images.length} processed`);
+  console.log(`✓ Title: "${title}"`);
+
+  return {
+    url,
+    language,
+    category,
+    images,
+    title,
+    description: title,
+    markdown: response.markdown
+  };
+}
 
 async function crawlWithBasicMethod(url: string): Promise<CrawlResult> {
   console.log('=== INTELLIGENT CRAWLER STARTED ===');
