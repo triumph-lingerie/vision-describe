@@ -41,7 +41,7 @@ export function Logo({ className, size = "md" }: LogoProps) {
           size === "lg" && "text-2xl",
         )}
       >
-        Vision Describe
+        VisionDescribe
       </span>
     </Link>
   );
