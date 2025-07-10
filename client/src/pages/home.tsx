@@ -67,9 +67,7 @@ export default function Home() {
             Generate product descriptions from images and URLs
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-            Transform product images into compelling marketing content for your
-            e-commerce store. Upload photos directly or crawl existing product
-            pages to enhance descriptions with AI-powered visual analysis.
+             Powered by GPT-4V(ision) and Firecrawl.
           </p>
         </div>
 
