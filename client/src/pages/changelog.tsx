@@ -337,7 +337,7 @@ export default function Changelog() {
           <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-2">
               <p className="text-sm text-muted-foreground">
-                © {new Date().getFullYear()} Vision Describe.
+                © {new Date().getFullYear()} VisionDescribe.
               </p>
             </div>
 
