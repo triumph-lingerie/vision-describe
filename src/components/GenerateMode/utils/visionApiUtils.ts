@@ -1,21 +1,25 @@
 /**
- * Vision API utilities — Client-side Claude calls (text + vision).
+ * Claude API utilities for the Generate flows (Image Analysis, Metadata
+ * Generation, CSV Translation).
  *
- * translateWithClaude accepts either a plain string prompt OR a
- * CachedPromptInput ({system, user}) which gets prompt caching via
- * cache_control on the system block. The ephemeral cache uses 1h TTL,
- * chosen because batch runs (21 SKU × 12 locales = 252 calls) routinely
- * take more than 5 minutes, the default ephemeral TTL.
+ * Every text call sends the stable instruction block as a cached system
+ * prefix. The metadata flows use the 1-hour cache TTL because a batch of 250+
+ * calls runs longer than the default 5 minutes.
  *
- * All four flows (Image Analysis, Metadata Generation, CSV Translation,
- * Optimize) are hardcoded to claude-opus-5 with adaptive thinking at high
- * effort. The OpenAI text and vision paths were removed once the
- * user-facing model selector was dropped.
+ * Model and effort per route live in ../generationConfig.ts. Sampling
+ * parameters (temperature, top_p, top_k) are not sent: Opus 5 rejects them.
  */
-
 import Anthropic from '@anthropic-ai/sdk';
 import type { VisionApiResponse, ImageFile, CachedPromptInput } from '../types';
 import { isQuotaError, emitQuotaExhausted } from '@/lib/api/anthropicErrors';
+import { costFromUsage } from '@/lib/pricing';
+import {
+  type Effort,
+  EN_MASTER_MODEL,
+  GENERATION_MAX_TOKENS,
+  IMAGE_ANALYSIS_EFFORT,
+  SYSTEM_CACHE_TTL,
+} from '../generationConfig';
 
 /**
  * Wrap a Claude SDK promise so a "tokens finished" failure (credit balance too
@@ -23,27 +27,21 @@ import { isQuotaError, emitQuotaExhausted } from '@/lib/api/anthropicErrors';
  * reload-and-resume dialog. The error is still rethrown so callers keep their
  * existing handling.
  */
-// Loosely typed (Promise<any>) to match the existing `as any` call sites so the
-// inferred `response` type is unchanged.
-function withQuotaDetection(p: Promise<any>): Promise<any> {
+function withQuotaDetection<T>(p: Promise<T>): Promise<T> {
   return p.catch((err) => {
     if (isQuotaError(err)) emitQuotaExhausted();
     throw err;
   });
 }
 
-/**
- * Default model for the Claude path. Aligned with the hardcoded constants
- * exported from types.ts (IMAGE_ANALYSIS_MODEL, CSV_TRANSLATION_MODEL,
- * METADATA_GENERATION_MODEL) — single source of truth even though callers
- * always pass an explicit model.
- */
-const DEFAULT_CLAUDE_MODEL = 'claude-opus-5';
-
-/** Stop fields the installed SDK (0.50.4) does not type yet. */
-interface StopSignals {
-  stop_reason?: string | null;
-  stop_details?: { category?: string | null } | null;
+function browserClient(apiKey: string): Anthropic {
+  return new Anthropic({
+    apiKey,
+    dangerouslyAllowBrowser: true,
+    // Long batches hit transient 429s and 5xx; four retries with the SDK's
+    // backoff clear most of them before the quota dialog has to appear.
+    maxRetries: 4,
+  });
 }
 
 /**
@@ -51,16 +49,16 @@ interface StopSignals {
  *
  * Opus 5 can end a turn with stop_reason 'refusal' (HTTP 200, a stop_details
  * category, and no text block). Without this, a declined SKU surfaced as the
- * generic "No valid text content" and looked like a parsing bug — easy to miss
+ * generic "No valid text content" and looked like a parsing bug, easy to miss
  * in a batch of several hundred calls. 'max_tokens' gets the same treatment,
  * since a truncated description is also worth naming.
  */
-function describeEmptyResponse(response: StopSignals): string {
-  const stopReason = response?.stop_reason;
+function describeEmptyResponse(response: Anthropic.Message): string {
+  const stopReason = response.stop_reason;
 
   if (stopReason === 'refusal') {
-    const category = response?.stop_details?.category;
-    return `Claude declined this request${category ? ` (${category})` : ''}. The source copy or product data likely tripped a safety classifier — check the input for this SKU.`;
+    const category = response.stop_details?.category;
+    return `Claude declined this request${category ? ` (${category})` : ''}. The source copy or product data likely tripped a safety classifier. Check the input for this SKU.`;
   }
 
   if (stopReason === 'max_tokens') {
@@ -71,10 +69,10 @@ function describeEmptyResponse(response: StopSignals): string {
 }
 
 /**
- * Type guard — narrows the union returned by prompt builders. Old builders
+ * Type guard: narrows the union returned by prompt builders. Old builders
  * returned plain strings; new ones return {system, user}.
  */
-function isCachedPrompt(value: unknown): value is CachedPromptInput {
+export function isCachedPrompt(value: unknown): value is CachedPromptInput {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -83,144 +81,169 @@ function isCachedPrompt(value: unknown): value is CachedPromptInput {
   );
 }
 
+function toVisionApiResponse(
+  response: Anthropic.Message,
+  model: string,
+  cacheTtl: '5m' | '1h'
+): VisionApiResponse {
+  const textBlock = response.content.find(
+    (block): block is Anthropic.TextBlock => block.type === 'text'
+  );
+
+  if (!textBlock || !textBlock.text.trim()) {
+    throw new Error(describeEmptyResponse(response));
+  }
+
+  const usage = response.usage;
+  return {
+    content: textBlock.text.trim(),
+    model: response.model || model,
+    stopReason: response.stop_reason,
+    tokens: {
+      inputTokens: usage?.input_tokens ?? 0,
+      outputTokens: usage?.output_tokens ?? 0,
+      cacheCreationTokens: usage?.cache_creation_input_tokens ?? 0,
+      cacheReadTokens: usage?.cache_read_input_tokens ?? 0,
+    },
+    costUsd: costFromUsage(model, usage, { cacheTtl }),
+  };
+}
+
+export interface TextCallOptions {
+  /** Adaptive-thinking effort for this route. Defaults to the API default, high. */
+  effort?: Effort;
+  maxTokens?: number;
+  /** TTL for the cached system block. Defaults to the flow-wide setting. */
+  cacheTtl?: '5m' | '1h';
+}
+
+/**
+ * Request parameters for a text-only generation call. Shared with the batch
+ * submission path so a live call and a batched one are the same request.
+ */
+export function buildTextParams(
+  prompt: string | CachedPromptInput,
+  model: string,
+  options: TextCallOptions = {}
+): Anthropic.MessageCreateParamsNonStreaming {
+  const cacheTtl = options.cacheTtl ?? SYSTEM_CACHE_TTL;
+  const params: Anthropic.MessageCreateParamsNonStreaming = {
+    model,
+    max_tokens: options.maxTokens ?? GENERATION_MAX_TOKENS,
+    thinking: { type: 'adaptive' },
+    output_config: { effort: options.effort ?? 'high' },
+    messages: [{ role: 'user', content: isCachedPrompt(prompt) ? prompt.user : prompt }],
+  };
+  if (isCachedPrompt(prompt)) {
+    params.system = [
+      {
+        type: 'text',
+        text: prompt.system,
+        cache_control: { type: 'ephemeral', ttl: cacheTtl },
+      },
+    ];
+  }
+  return params;
+}
+
 /**
  * Call Claude with vision (images + text prompt). The instruction text is
- * sent as a cached prefix (cache_control) so repeated analyses with the same
- * settings re-read it at ~10% of the input price; the images vary and follow.
+ * sent as a cached prefix so repeated analyses with the same settings re-read
+ * it at a tenth of the input price; the images vary and follow.
  */
 export async function analyzeWithClaude(
   prompt: string,
   images: ImageFile[],
   apiKey: string,
-  model: string = DEFAULT_CLAUDE_MODEL,
+  model: string = EN_MASTER_MODEL,
+  options: TextCallOptions = {}
 ): Promise<VisionApiResponse> {
-  const client = new Anthropic({
-    apiKey,
-    dangerouslyAllowBrowser: true,
-  });
+  const client = browserClient(apiKey);
 
-  const imageContent = images.map((img) => ({
-    type: 'image' as const,
+  const imageContent: Anthropic.ImageBlockParam[] = images.map((img) => ({
+    type: 'image',
     source: {
-      type: 'base64' as const,
+      type: 'base64',
       media_type: img.mimeType as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp',
       data: img.base64,
     },
   }));
 
-  // Adaptive thinking at high effort: this copy has to hold a terminology
-  // contract, and high is the Opus 5 default for quality-sensitive work.
-  // Cast to any: the installed @anthropic-ai/sdk (0.50.4) predates the
-  // adaptive-thinking / output_config types, but the API honours the fields.
-  const response = await withQuotaDetection(client.messages.create({
-    model,
-    max_tokens: 8192,
-    thinking: { type: 'adaptive' },
-    output_config: { effort: 'high' },
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt, cache_control: { type: 'ephemeral' } },
-          ...imageContent,
-        ],
-      },
-    ],
-  } as any));
-
-  const textBlock = response.content.find(
-    (block): block is Anthropic.TextBlock => block.type === 'text',
+  const cacheTtl = options.cacheTtl ?? '5m';
+  const response = await withQuotaDetection(
+    client.messages.create({
+      model,
+      max_tokens: options.maxTokens ?? 8192,
+      thinking: { type: 'adaptive' },
+      output_config: { effort: options.effort ?? IMAGE_ANALYSIS_EFFORT },
+      messages: [
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: prompt, cache_control: { type: 'ephemeral', ttl: cacheTtl } },
+            ...imageContent,
+          ],
+        },
+      ],
+    })
   );
 
-  if (!textBlock || !textBlock.text.trim()) {
-    throw new Error(describeEmptyResponse(response));
-  }
-
-  return {
-    content: textBlock.text.trim(),
-    tokens: {
-      inputTokens: response.usage?.input_tokens ?? 0,
-      outputTokens: response.usage?.output_tokens ?? 0,
-      cacheCreationTokens: response.usage?.cache_creation_input_tokens ?? 0,
-      cacheReadTokens: response.usage?.cache_read_input_tokens ?? 0,
-    },
-  };
+  return toVisionApiResponse(response, model, cacheTtl);
 }
 
 /**
- * Call Claude for text-only generation/translation.
+ * Call Claude for text-only generation, rewriting or localisation.
  *
- * `prompt` accepts:
- * - `string` — sent as a single user message. No prompt caching applied
- *   (kept for backward compatibility with any caller still using flat
- *   strings).
- * - `CachedPromptInput` — `{system, user}`. The `system` block is sent
- *   with `cache_control: {type: 'ephemeral', ttl: '1h'}`, which makes
- *   every call after the first one in the batch a cache read at ~10% of
- *   the base input price. 1h TTL chosen because long batches (~252 calls
- *   for AW26) take more than the default 5 minutes.
- *
- * Used by useMetadataGeneration (EN master + localisations) and
- * useCsvTranslation (per-locale translations).
+ * `prompt` accepts a plain string (single user message, no caching, kept for
+ * older callers) or a `CachedPromptInput` ({system, user}) whose system block
+ * is cached for every later call in the batch.
  */
 export async function translateWithClaude(
   prompt: string | CachedPromptInput,
   apiKey: string,
-  model: string = DEFAULT_CLAUDE_MODEL,
+  model: string = EN_MASTER_MODEL,
   signal?: AbortSignal,
+  options: TextCallOptions = {}
 ): Promise<VisionApiResponse> {
-  const client = new Anthropic({
-    apiKey,
-    dangerouslyAllowBrowser: true,
-  });
-
-  // Adaptive thinking at high effort: this copy has to hold a terminology
-  // contract, and high is the Opus 5 default for quality-sensitive work.
-  // `as any`: SDK 0.50.4 predates these types; the API still honours them.
-  const params: any = isCachedPrompt(prompt)
-    ? {
-        model,
-        max_tokens: 16000,
-        thinking: { type: 'adaptive' },
-        output_config: { effort: 'high' },
-        system: [
-          {
-            type: 'text',
-            text: prompt.system,
-            cache_control: { type: 'ephemeral', ttl: '1h' },
-          },
-        ],
-        messages: [{ role: 'user', content: prompt.user }],
-      }
-    : {
-        model,
-        max_tokens: 16000,
-        thinking: { type: 'adaptive' },
-        output_config: { effort: 'high' },
-        messages: [{ role: 'user', content: prompt }],
-      };
-
-  const response = await withQuotaDetection(client.messages.create(
-    params as any,
-    signal ? { signal } : undefined,
-  ));
-
-  const textBlock = response.content.find(
-    (block): block is Anthropic.TextBlock => block.type === 'text',
+  const client = browserClient(apiKey);
+  const params = buildTextParams(prompt, model, options);
+  const response = await withQuotaDetection(
+    client.messages.create(params, signal ? { signal } : undefined)
   );
-
-  if (!textBlock || !textBlock.text.trim()) {
-    throw new Error(describeEmptyResponse(response));
-  }
-
-  return {
-    content: textBlock.text.trim(),
-    tokens: {
-      inputTokens: response.usage?.input_tokens ?? 0,
-      outputTokens: response.usage?.output_tokens ?? 0,
-      cacheCreationTokens: response.usage?.cache_creation_input_tokens ?? 0,
-      cacheReadTokens: response.usage?.cache_read_input_tokens ?? 0,
-    },
-  };
+  return toVisionApiResponse(response, model, options.cacheTtl ?? SYSTEM_CACHE_TTL);
 }
 
+/**
+ * Exact input-token count of a prompt, from the API's own tokenizer. Used for
+ * the pre-run cost estimate: one count per distinct prompt shape is enough,
+ * the products in a batch differ by a few dozen tokens each.
+ */
+export async function countPromptTokens(
+  prompt: string | CachedPromptInput,
+  apiKey: string,
+  model: string = EN_MASTER_MODEL
+): Promise<{ systemTokens: number; userTokens: number }> {
+  const client = browserClient(apiKey);
+  if (isCachedPrompt(prompt)) {
+    const [whole, userOnly] = await Promise.all([
+      client.messages.countTokens({
+        model,
+        system: prompt.system,
+        messages: [{ role: 'user', content: prompt.user }],
+      }),
+      client.messages.countTokens({
+        model,
+        messages: [{ role: 'user', content: prompt.user }],
+      }),
+    ]);
+    return {
+      systemTokens: Math.max(0, whole.input_tokens - userOnly.input_tokens),
+      userTokens: userOnly.input_tokens,
+    };
+  }
+  const count = await client.messages.countTokens({
+    model,
+    messages: [{ role: 'user', content: prompt }],
+  });
+  return { systemTokens: 0, userTokens: count.input_tokens };
+}
