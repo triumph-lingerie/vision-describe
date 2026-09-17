@@ -1,5 +1,5 @@
-import React, { useRef, useMemo, useCallback } from 'react';
-import { Upload, AlertCircle } from 'lucide-react';
+import React, { useRef, useMemo, useCallback, useEffect } from 'react';
+import { Upload, AlertCircle, Cloud, Play, X, Zap, Layers } from 'lucide-react';
 import { StepIndicator, type StepDef } from '@/components/ui/step-indicator';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -7,8 +7,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import { useMetadataGeneration } from '../../hooks/useMetadataGeneration';
+import { formatUsd } from '@/lib/pricing';
+import { useMetadataGeneration, type ProcessingMode } from '../../hooks/useMetadataGeneration';
 import { MetadataGenerationStep, METADATA_GENERATION_MODEL } from '../../types';
+import {
+  EN_MASTER_EFFORT,
+  EN_MASTER_MODEL,
+  LOCALISATION_EFFORT,
+  LOCALISATION_MODEL,
+} from '../../generationConfig';
 import { MetadataLanguageMultiSelect } from './MetadataLanguageMultiSelect';
 import { GenerationResult } from './GenerationResult';
 import { useApiKeys } from '@/contexts/ApiKeysContext';
@@ -54,6 +61,26 @@ const STEP_DEFS: StepDef<MetadataGenerationStep>[] = [
   { key: MetadataGenerationStep.RESULT, label: 'Result' },
 ];
 
+const MODE_OPTIONS: Array<{
+  value: ProcessingMode;
+  label: string;
+  hint: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
+  {
+    value: 'live',
+    label: 'Live',
+    hint: 'Results as they come, keep the tab open',
+    icon: Zap,
+  },
+  {
+    value: 'batch',
+    label: 'Batch',
+    hint: 'Half price, results within the hour, tab can be closed',
+    icon: Layers,
+  },
+];
+
 export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
   onBack,
 }) => {
@@ -73,12 +100,22 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
     format,
     selectedLanguages,
     setSelectedLanguages,
+    processingMode,
+    setProcessingMode,
     isProcessing,
     progress,
+    batchProgress,
     logs,
     results,
     error,
     localeMismatches,
+    totals,
+    estimate,
+    estimating,
+    estimateCost,
+    openRuns,
+    resumeRun,
+    dismissRun,
     parseFile,
     startGeneration,
     cancelGeneration,
@@ -89,9 +126,7 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async (
-    e
-  ) => {
+  const handleFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const f = e.target.files?.[0];
     if (f) await parseFile(f);
   };
@@ -102,15 +137,33 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
     if (f) await parseFile(f);
   };
 
-  const handleStart = () => {
+  const requireKey = useCallback((): boolean => {
     if (!anthropicKey) {
       toast.error('Anthropic API Key Missing', {
         description: `This flow uses ${METADATA_GENERATION_MODEL}. Configure your Anthropic key in Settings.`,
       });
-      return;
+      return false;
     }
+    return true;
+  }, [anthropicKey]);
+
+  const handleStart = () => {
+    if (!requireKey()) return;
     startGeneration(anthropicKey);
   };
+
+  const handleResume = (run: (typeof openRuns)[number]) => {
+    if (!requireKey()) return;
+    resumeRun(run, anthropicKey);
+  };
+
+  // Pre-run estimate whenever the queue, the languages or the mode change on
+  // the languages step. Token counting is free; it just needs the key.
+  useEffect(() => {
+    if (step !== MetadataGenerationStep.LANGUAGES || !anthropicKey) return;
+    const t = window.setTimeout(() => estimateCost(anthropicKey), 400);
+    return () => window.clearTimeout(t);
+  }, [step, anthropicKey, estimateCost, processingMode]);
 
   /** One line per affected SKU: 'de_DE holds fr_FR, nl_NL holds de_DE'. */
   const mismatchSkus = useMemo(() => {
@@ -142,8 +195,8 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
     selectedLanguages.length === 0
       ? 0
       : selectedLanguages.includes('en')
-      ? selectedLanguages.length
-      : selectedLanguages.length + 1;
+        ? selectedLanguages.length
+        : selectedLanguages.length + 1;
 
   const toggleBrand = useCallback(
     (brand: string) => {
@@ -158,14 +211,21 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
     inputRef.current?.click();
   }, []);
 
-  const handleDropZoneKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (
-    e
-  ) => {
+  const handleDropZoneKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       openFilePicker();
     }
   };
+
+  const batchPercent =
+    batchProgress && batchProgress.total > 0
+      ? Math.round(
+          ((batchProgress.succeeded + batchProgress.errored + batchProgress.expired) /
+            batchProgress.total) *
+            100
+        )
+      : 0;
 
   return (
     <div className="">
@@ -173,15 +233,66 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
 
       {step === MetadataGenerationStep.UPLOAD && (
         <section className="">
+          {openRuns.length > 0 && (
+            <div className="mb-6 space-y-3">
+              {openRuns.map((run) => {
+                const cfg = run.config;
+                const isBatch = cfg.mode === 'batch';
+                const date = new Date(run.created_at).toLocaleString();
+                return (
+                  <div key={run.id} className="border border-border bg-muted/30 px-5 py-4">
+                    <div className="flex items-start gap-3">
+                      <Cloud className="h-4 w-4 text-signal mt-0.5 shrink-0" aria-hidden="true" />
+                      <div className="flex-1 min-w-0">
+                        <p className="label-mono">
+                          <span
+                            className={cn('status-dot mr-2 align-middle', run.status === 'running' && 'animate-pulse')}
+                          />
+                          {isBatch ? 'Batch run' : 'Live run'}{' '}
+                          {run.status === 'running' ? 'in progress' : 'interrupted'}
+                        </p>
+                        <div className="mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-xs font-mono text-muted-foreground">
+                          {cfg.fileName && <span title={cfg.fileName}>{cfg.fileName}</span>}
+                          <span>{cfg.products.length} products</span>
+                          <span>{cfg.languages.join(', ')}</span>
+                          <span>
+                            {run.processed_count || 0} / {run.total_rows} done
+                          </span>
+                          <span>{date}</span>
+                          {isBatch && cfg.batch?.phase && (
+                            <span>
+                              phase {cfg.batch.phase === 'en' ? 'EN masters' : 'localisations'}
+                              {cfg.batch[`${cfg.batch.phase}Collected`] ? ', collected' : ''}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-4">
+                          <Button size="sm" onClick={() => handleResume(run)} disabled={isProcessing}>
+                            <Play className="h-3.5 w-3.5 mr-1.5" />
+                            {isBatch ? 'Reconnect' : 'Resume'}
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => dismissRun(run)} disabled={isProcessing}>
+                            <X className="h-3.5 w-3.5 mr-1.5" />
+                            Dismiss
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           <div className="mb-4">
             <p className="label-mono mb-1">Step 01 / Input</p>
             <h2 className="text-base font-semibold tracking-tightest text-foreground">
               Upload product metadata file
             </h2>
             <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
-              Excel file with product metadata for new SKUs. AW26 compact and
-              B2C standard formats supported; multi-sheet workbooks are read in
-              full.
+              Excel file with product metadata for new SKUs (AW26 compact or B2C
+              standard headers), or a PIM long-description export to rewrite.
+              Multi-sheet workbooks are read in full.
             </p>
           </div>
 
@@ -206,9 +317,7 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
             <Upload className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
             <div className="text-center">
               <p className="label-mono mb-1">Drop file or click to browse</p>
-              <p className="text-xs text-muted-foreground font-mono">
-                .xlsx · .xls · .xlsm
-              </p>
+              <p className="text-xs text-muted-foreground font-mono">.xlsx · .xls · .xlsm</p>
             </div>
           </div>
 
@@ -247,12 +356,7 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
           <dl className="border border-border divide-y divide-border bg-card text-sm">
             <SpecRow label="Format" value={format.type} mono />
             <SpecRow label="Products" value={String(products.length)} mono />
-            <SpecRow
-              label="Sheets"
-              value={format.sheetNames.join(', ')}
-              mono
-              truncate
-            />
+            <SpecRow label="Sheets" value={format.sheetNames.join(', ')} mono truncate />
             <SpecRow label="File" value={file?.name ?? ''} truncate />
           </dl>
 
@@ -296,9 +400,7 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
                   })}
                 </div>
                 {selectedBrands.length === 0 && (
-                  <p className="mt-2 text-xs text-destructive">
-                    Select at least one brand to proceed.
-                  </p>
+                  <p className="mt-2 text-xs text-destructive">Select at least one brand to proceed.</p>
                 )}
               </div>
 
@@ -308,22 +410,19 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
                     Exclude SKUs
                   </Label>
                   <span className="label-mono-sm normal-case tracking-normal tabular-nums">
-                    {excludedSkus.length > 0
-                      ? `${excludedSkus.length} excluded`
-                      : 'optional'}
+                    {excludedSkus.length > 0 ? `${excludedSkus.length} excluded` : 'optional'}
                   </span>
                 </div>
                 <Textarea
                   id="sku-exclusion"
                   value={exclusionInput}
                   onChange={(e) => setExclusionInput(e.target.value)}
-                  placeholder="e.g. 10228663, 10228693, 10228698 — separated by comma, space or newline"
+                  placeholder="e.g. 10228663, 10228693, 10228698 (comma, space or newline separated)"
                   rows={2}
                   className="font-mono text-xs"
                 />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Material Numbers listed here are dropped from the queue after
-                  the brand filter.
+                  Material Numbers listed here are dropped from the queue after the brand filter.
                 </p>
               </div>
             </div>
@@ -332,8 +431,8 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
           {format.type === 'unknown' && (
             <div className="mt-4 flex items-center gap-2 border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
               <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
-              Unknown format — make sure the file has either AW26 compact
-              headers or B2C standard headers.
+              Unknown format: the file needs either AW26 compact headers, B2C
+              standard headers, or the PIM long-description export columns.
             </div>
           )}
 
@@ -360,9 +459,8 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
               <div className="flex items-center gap-2 text-destructive">
                 <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span className="font-medium">
-                  {mismatchSkus.length} product
-                  {mismatchSkus.length === 1 ? '' : 's'} with a locale column in
-                  the wrong language
+                  {mismatchSkus.length} product{mismatchSkus.length === 1 ? '' : 's'} with a
+                  locale column in the wrong language
                 </span>
               </div>
               <p className="mt-2 text-muted-foreground">
@@ -373,7 +471,7 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
               <ul className="mt-2 space-y-0.5 font-mono text-xs text-muted-foreground">
                 {mismatchSkus.slice(0, 8).map((m) => (
                   <li key={m.materialNumber}>
-                    {m.materialNumber} — {m.columns}
+                    {m.materialNumber}: {m.columns}
                   </li>
                 ))}
               </ul>
@@ -418,16 +516,66 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
           onNext={handleStart}
           onBack={() => setStep(MetadataGenerationStep.FORMAT_DETECT)}
           summary={
-            <p className="text-xs text-muted-foreground text-center">
-              {queuedProducts.length} products × {opsPerProduct} ={' '}
-              <span className="font-mono">
-                {queuedProducts.length * opsPerProduct}
-              </span>{' '}
-              calls on{' '}
-              <span className="font-mono">{METADATA_GENERATION_MODEL}</span>
-            </p>
+            <div className="space-y-4">
+              <div>
+                <p className="label-mono mb-2">Processing mode</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {MODE_OPTIONS.map(({ value, label, hint, icon: Icon }) => {
+                    const on = processingMode === value;
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setProcessingMode(value)}
+                        className={cn(
+                          'flex items-start gap-3 border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal focus-visible:ring-offset-2',
+                          on
+                            ? 'border-signal bg-signal/10'
+                            : 'border-border bg-card hover:border-foreground/40',
+                        )}
+                      >
+                        <Icon className={cn('h-4 w-4 mt-0.5 shrink-0', on ? 'text-signal' : 'text-muted-foreground')} />
+                        <span>
+                          <span className={cn('block text-sm font-medium', on ? 'text-signal' : 'text-foreground')}>
+                            {label}
+                          </span>
+                          <span className="block text-xs text-muted-foreground">{hint}</span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="border border-border bg-card px-4 py-3 text-xs text-muted-foreground space-y-1">
+                <p>
+                  {queuedProducts.length} products × {opsPerProduct} ={' '}
+                  <span className="font-mono">{queuedProducts.length * opsPerProduct}</span> calls.
+                  EN master on <span className="font-mono">{EN_MASTER_MODEL}</span> ({EN_MASTER_EFFORT}),
+                  localisations on <span className="font-mono">{LOCALISATION_MODEL}</span> ({LOCALISATION_EFFORT}).
+                </p>
+                {estimating && <p>Counting prompt tokens…</p>}
+                {!estimating && estimate && (
+                  <p>
+                    Estimated cost:{' '}
+                    <span className={cn('font-mono', processingMode === 'live' && 'text-foreground')}>
+                      {formatUsd(estimate.liveUsd)} live
+                    </span>{' '}
+                    ·{' '}
+                    <span className={cn('font-mono', processingMode === 'batch' && 'text-foreground')}>
+                      {formatUsd(estimate.batchUsd)} batch
+                    </span>
+                    <span className="block mt-1 opacity-80">{estimate.basedOn}.</span>
+                  </p>
+                )}
+                {!estimating && !estimate && anthropicKey && (
+                  <p>Estimate unavailable (the token count call failed; the run still works).</p>
+                )}
+              </div>
+            </div>
           }
-          nextLabel="Start generation"
+          nextLabel={processingMode === 'batch' ? 'Submit batch' : 'Start generation'}
         />
       )}
 
@@ -439,23 +587,35 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
                 <span className="status-dot animate-pulse mr-2 align-middle" />
                 Processing
               </p>
-              <p className="font-mono text-xs tabular-nums text-muted-foreground">
-                {progress.current.toString().padStart(3, '0')} /{' '}
-                {progress.total.toString().padStart(3, '0')}
-              </p>
+              {processingMode === 'batch' && batchProgress ? (
+                <p className="font-mono text-xs tabular-nums text-muted-foreground">
+                  {batchProgress.succeeded + batchProgress.errored + batchProgress.expired} /{' '}
+                  {batchProgress.total}
+                </p>
+              ) : (
+                <p className="font-mono text-xs tabular-nums text-muted-foreground">
+                  {progress.current.toString().padStart(3, '0')} /{' '}
+                  {progress.total.toString().padStart(3, '0')}
+                </p>
+              )}
             </div>
             <h2 className="text-base font-semibold tracking-tightest text-foreground">
-              Generating descriptions
+              {processingMode === 'batch' ? 'Batch in progress' : 'Generating descriptions'}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Running {METADATA_GENERATION_MODEL} on the queued products. Do
-              not close the tab.
+              {processingMode === 'batch'
+                ? `${batchProgress ? `${batchProgress.phase === 'en' ? 'EN masters' : 'Localisations'}: ${batchProgress.step}. ` : ''}Anthropic processes the batch on its side; this tab can be closed and the run picked up again from the upload screen.`
+                : `Running ${METADATA_GENERATION_MODEL} on the queued products. Do not close the tab; if you do, the run can be resumed from the upload screen.`}
             </p>
           </div>
 
           <Progress
             value={
-              progress.total > 0 ? (progress.current / progress.total) * 100 : 0
+              processingMode === 'batch'
+                ? batchPercent
+                : progress.total > 0
+                  ? (progress.current / progress.total) * 100
+                  : 0
             }
             className="h-1"
           />
@@ -464,10 +624,7 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
             <ScrollArea className="h-40 mt-5 border border-border bg-card p-3">
               <div className="space-y-1">
                 {logs.map((log, i) => (
-                  <p
-                    key={i}
-                    className="text-xs text-muted-foreground font-mono"
-                  >
+                  <p key={i} className="text-xs text-muted-foreground font-mono">
                     {log}
                   </p>
                 ))}
@@ -476,16 +633,13 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
           )}
 
           <div className="mt-6 flex flex-col items-start gap-1">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={cancelGeneration}
-              disabled={!isProcessing}
-            >
-              Cancel & abort in-flight calls
+            <Button variant="destructive" size="sm" onClick={cancelGeneration} disabled={!isProcessing}>
+              {processingMode === 'batch' ? 'Cancel batch' : 'Cancel & abort in-flight calls'}
             </Button>
             <p className="text-xs text-muted-foreground">
-              Aborts all pending API calls immediately. Partial results are kept.
+              {processingMode === 'batch'
+                ? 'Asks Anthropic to stop the batch. Requests already processed are still billed.'
+                : 'Aborts all pending API calls immediately. Partial results are kept.'}
             </p>
           </div>
         </section>
@@ -496,10 +650,10 @@ export const MetadataGenerationFlow: React.FC<MetadataGenerationFlowProps> = ({
           results={results}
           selectedLanguages={selectedLanguages}
           onExport={exportResults}
-          onExportSfccImport={
-            format?.type === 'pim-longdesc' ? exportSfccImport : undefined
-          }
+          onExportSfccImport={format?.type === 'pim-longdesc' ? exportSfccImport : undefined}
           onReset={reset}
+          costUsd={totals.costUsd}
+          mode={processingMode}
         />
       )}
     </div>
