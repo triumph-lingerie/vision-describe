@@ -9,7 +9,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import type { z } from 'zod/v4';
-import { costFromUsage } from '../../src/lib/pricing';
+import { costFromUsage } from './pricing';
 
 export type Effort = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 

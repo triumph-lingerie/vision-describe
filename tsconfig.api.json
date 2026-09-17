@@ -11,5 +11,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["api/**/*.ts", "src/lib/pricing.ts"]
+  "include": ["api/**/*.ts"]
 }

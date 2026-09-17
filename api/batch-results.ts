@@ -13,7 +13,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import Anthropic from '@anthropic-ai/sdk';
 import { supabaseAdmin, verifyUserJwt, getUserApiKeys } from './_lib/supabaseAdmin';
 import { longDescColumnFor } from './_lib/longDescColumns';
-import { costFromUsage } from '../src/lib/pricing';
+import { costFromUsage } from './_lib/pricing';
 
 export const config = { maxDuration: 300 };
 

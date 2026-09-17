@@ -8,8 +8,8 @@
  * 5.1 reads at 0.25 USD/MTok, half of Opus 5's rate). The Batches API takes
  * 50% off every token type.
  *
- * The server functions import this file through a relative path, so keep it
- * free of `@/` alias imports.
+ * api/_lib/pricing.ts is a copy for the server functions (Vercel compiles only
+ * files under api/); src/lib/pricing.sync.test.ts keeps the two equal.
  */
 
 export interface ModelPricing {
