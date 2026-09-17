@@ -12,6 +12,7 @@ import { Download, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { GeneratedProduct } from '../../types';
+import { formatUsd } from '@/lib/pricing';
 
 interface GenerationResultProps {
   results: GeneratedProduct[];
@@ -20,6 +21,10 @@ interface GenerationResultProps {
   /** PIM round-trip only: builds the SFCC upload template. */
   onExportSfccImport?: () => Promise<Blob>;
   onReset: () => void;
+  /** List-price cost of the run in USD (Batches API price when run in batch mode). */
+  costUsd?: number;
+  /** 'live' or 'batch', shown next to the cost. */
+  mode?: string;
 }
 
 export const GenerationResult: React.FC<GenerationResultProps> = ({
@@ -28,15 +33,16 @@ export const GenerationResult: React.FC<GenerationResultProps> = ({
   onExport,
   onExportSfccImport,
   onReset,
+  costUsd,
+  mode,
 }) => {
   const totalDescriptions = results.reduce(
     (sum, r) => sum + Object.keys(r.translations).length,
     0
   );
-  const totalErrors = results.reduce(
-    (sum, r) => sum + (r.errors?.length || 0),
-    0
-  );
+  const totalErrors = results.reduce((sum, r) => sum + (r.errors?.length || 0), 0);
+  const totalWarnings = results.reduce((sum, r) => sum + (r.warnings?.length || 0), 0);
+  const productsWithWarnings = results.filter((r) => (r.warnings?.length || 0) > 0);
 
   const download = async (build: () => Promise<Blob>, prefix: string) => {
     try {
@@ -78,13 +84,22 @@ export const GenerationResult: React.FC<GenerationResultProps> = ({
         </div>
 
         <div className="border border-border bg-card">
-          <div className="grid grid-cols-3 divide-x divide-border">
-            <StatCell label="Products" value={results.length} />
-            <StatCell label="Descriptions" value={totalDescriptions} />
+          <div className="grid grid-cols-2 sm:grid-cols-5 divide-x divide-y sm:divide-y-0 divide-border">
+            <StatCell label="Products" value={String(results.length)} />
+            <StatCell label="Descriptions" value={String(totalDescriptions)} />
+            <StatCell
+              label="Warnings"
+              value={String(totalWarnings)}
+              tone={totalWarnings > 0 ? 'muted' : 'foreground'}
+            />
             <StatCell
               label="Errors"
-              value={totalErrors}
+              value={String(totalErrors)}
               tone={totalErrors > 0 ? 'destructive' : 'foreground'}
+            />
+            <StatCell
+              label={mode === 'batch' ? 'Cost (batch)' : 'Cost'}
+              value={typeof costUsd === 'number' ? formatUsd(costUsd) : '-'}
             />
           </div>
           <div className="flex flex-wrap items-center justify-end gap-3 px-5 py-4 border-t border-border">
@@ -116,10 +131,39 @@ export const GenerationResult: React.FC<GenerationResultProps> = ({
         </div>
       </section>
 
+      {productsWithWarnings.length > 0 && (
+        <section>
+          <div className="flex items-baseline justify-between mb-3">
+            <p className="label-mono">Style checks</p>
+            <span className="text-xs text-muted-foreground font-mono tabular-nums">
+              {productsWithWarnings.length} product{productsWithWarnings.length === 1 ? '' : 's'}
+            </span>
+          </div>
+          <div className="border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+            <p className="mb-2">
+              Non-blocking findings from the code-side checks (opener, banned
+              words, em dashes, bullet count, length). Worth a look before the
+              upload.
+            </p>
+            <ul className="space-y-0.5 font-mono">
+              {productsWithWarnings.slice(0, 12).map((r) => (
+                <li key={r.product.materialNumber}>
+                  {r.product.materialNumber}: {r.warnings?.slice(0, 3).join(' · ')}
+                  {(r.warnings?.length || 0) > 3 ? ` · +${(r.warnings?.length || 0) - 3} more` : ''}
+                </li>
+              ))}
+              {productsWithWarnings.length > 12 && (
+                <li>… {productsWithWarnings.length - 12} more products</li>
+              )}
+            </ul>
+          </div>
+        </section>
+      )}
+
       {results.length > 0 && (
         <section>
           <div className="flex items-baseline justify-between mb-3">
-            <p className="label-mono">Preview — first 10 rows</p>
+            <p className="label-mono">Preview: first 10 rows</p>
             <span className="text-xs text-muted-foreground font-mono tabular-nums">
               {Math.min(10, results.length)} / {results.length}
             </span>
@@ -162,12 +206,10 @@ export const GenerationResult: React.FC<GenerationResultProps> = ({
                         >
                           <div className="truncate">
                             {r.translations[lang]
-                              ? r.translations[lang]
-                                  .replace(/<[^>]+>/g, ' ')
-                                  .substring(0, 80) + '…'
+                              ? r.translations[lang].replace(/<[^>]+>/g, ' ').substring(0, 80) + '…'
                               : r.errors?.find((e) => e.startsWith(lang))
-                              ? '(error)'
-                              : '—'}
+                                ? '(error)'
+                                : '—'}
                           </div>
                         </TableCell>
                       ))}
@@ -189,8 +231,8 @@ function StatCell({
   tone = 'foreground',
 }: {
   label: string;
-  value: number;
-  tone?: 'foreground' | 'destructive';
+  value: string;
+  tone?: 'foreground' | 'destructive' | 'muted';
 }) {
   return (
     <div className="p-5">
@@ -198,7 +240,11 @@ function StatCell({
       <p
         className={cn(
           'mt-2 text-2xl font-mono tracking-tightest tabular-nums',
-          tone === 'destructive' ? 'text-destructive' : 'text-foreground',
+          tone === 'destructive'
+            ? 'text-destructive'
+            : tone === 'muted'
+              ? 'text-muted-foreground'
+              : 'text-foreground',
         )}
       >
         {value}

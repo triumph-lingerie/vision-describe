@@ -186,6 +186,8 @@ export async function findInterruptedRuns(): Promise<RunRecord[]> {
     .from('runs')
     .select('*')
     .or('status.eq.interrupted,and(status.eq.running,processing_mode.eq.server)')
+    // Metadata Generation runs have their own resume banner.
+    .neq('use_case', 'metadata-generation')
     .order('created_at', { ascending: false });
 
   if (error || !data) return [];

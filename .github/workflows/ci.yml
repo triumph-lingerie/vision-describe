@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck (app + server functions)
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Lint
+        # The codebase carries pre-existing lint findings; keep the signal
+        # visible without blocking merges until they are worked down.
+        run: npm run lint
+        continue-on-error: true
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder

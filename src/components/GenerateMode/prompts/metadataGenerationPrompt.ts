@@ -2,13 +2,16 @@
 // (Material Description, Short description, Series USP, Style USP, Style Description)
 // for brand-new SKUs that have no existing master copy.
 //
-// Tuned for Claude Opus 4.7 with adaptive thinking. The prompt mixes XML
-// structure, brand TOV (from sloggiBrandExpressions / triumphBrandExpressions,
-// unchanged), explicit positive-statement style rules and few-shot examples.
+// Written for Claude Opus 5 with adaptive thinking: the prompts state each
+// rule once, in positive form, and leave the verification to the model's own
+// reasoning plus the code-side checks in ../utils/styleGuard.ts. The prompt
+// mixes XML structure, brand TOV (from sloggiBrandExpressions /
+// triumphBrandExpressions, unchanged), style rules and few-shot examples.
 //
-// Both builders return a CachedPromptInput ({system, user}) so the API caller
+// All builders return a CachedPromptInput ({system, user}) so the API caller
 // can mark the system block with cache_control. The system block is stable per
-// brand — caching saves ~75% of input tokens on batches of 20+ SKUs.
+// brand, so on a batch of 20+ SKUs every call after the first reads it from
+// the cache.
 
 import {
   sloggiBrandExpressions,
@@ -215,16 +218,9 @@ Return only the HTML. Start directly with <p>. No preamble, no markdown code blo
 
 Use <p> and <ul class="pd"><li>…</li></ul> exclusively. Do not use <strong>, <b>, <em>, <i>, headings or any other tag.
 
-Before returning, silently verify:
-- The opening sentence states why the customer needs the product and does NOT start with "Meet the…", "Introducing…", "Welcome to…", "Discover…", "Say hello to…" or any greeting opener.
-- Em dash count is 0 or 1.
-- No banned style words.
-- No mention of colour, size or variant.
-- All technical claims trace back to <input_materials>.
-- Total length is between 150 and 300 words.
-- HTML structure is exactly: <p>intro</p><ul class="pd"><li>…</li></ul><p>closing</p> (plus the sustainability line if applicable).
-- If <input_materials> Style USP or Style Description contains a cup classification line ("Integrated fixed cups", "Removable cups", "Padded with removable cups", "Non-padded" / "non padded"), it appears verbatim (or with minimal rewording) as the FIRST bullet of the <li> list. It is not paraphrased into a generic "padded" / "non-padded" line and it is not dropped.
-- Every construction detail sits on the component <input_materials> assigns it to, no feature is described as adjustable, removable or detachable unless the input says so, and the support level matches the input rather than being softened or intensified.
+Two details that are easy to lose and matter to the buying team:
+- If <input_materials> Style USP or Style Description contains a cup classification line ("Integrated fixed cups", "Removable cups", "Padded with removable cups", "Non-padded" / "non padded"), it appears verbatim (or with minimal rewording) as the FIRST bullet of the <li> list, never paraphrased into a generic "padded" / "non-padded" line and never dropped.
+- Every construction detail sits on the component <input_materials> assigns it to; no feature is described as adjustable, removable or detachable unless the input says so, and the support level matches the input rather than being softened or intensified.
 </output_format>`;
 
   const user = `<input_materials>
@@ -329,16 +325,7 @@ Return only the HTML. Start directly with <p>. No preamble, no markdown code blo
 
 Use <p> and <ul class="pd"><li>…</li></ul> exclusively. No <strong>, <b>, <em>, <i>, headings or other tags.
 
-Before returning, silently verify:
-- The opening sentence states why the customer needs the product and does NOT start with a greeting opener.
-- Em dash count is 0 or 1.
-- No banned style words, no AI filler.
-- No mention of colour, size or variant; no model-wears-size or retouching line.
-- Every technical claim traces back to <existing_description>.
-- Output is entirely in English.
-- Total length is between 150 and 300 words.
-- HTML structure is exactly: <p>intro</p><ul class="pd"><li>…</li></ul><p>closing</p>.
-- Every construction detail sits on the component <existing_description> assigns it to, nothing is described as adjustable, removable or detachable unless the source says so, and the support level matches the source rather than being softened or intensified.
+The output is entirely in English, whatever the language of the source. Every construction detail sits on the component <existing_description> assigns it to; nothing is described as adjustable, removable or detachable unless the source says so, and the support level matches the source rather than being softened or intensified.
 </output_format>`;
 
   const user = `<product_context>
@@ -441,9 +428,7 @@ Return only the localised HTML. Start directly with <p>. No markdown code blocks
 
 Use the same tags as <source>: <p> and <ul class="pd"><li>…</li></ul>. No <strong>, <b>, <em>, <i> or any other formatting.
 
-Before returning, silently verify:
-- Every claim in the output appears in <source>: same components, same support level, nothing gained "adjustable", "removable" or "detachable" along the way.
-- Technical terms that stay in English stayed in English, and no garment type changed.
+Every claim in the output appears in <source>: same components, same support level, same garment type, and the technical terms that stay in English stay in English.
 </output_format>`;
 
   // Only the glossary entries this SKU's copy actually uses. The full map is

@@ -8,7 +8,9 @@
     "api/cancel-run.ts": { "maxDuration": 10 },
     "api/batch-create.ts": { "maxDuration": 60 },
     "api/batch-status.ts": { "maxDuration": 10 },
-    "api/batch-results.ts": { "maxDuration": 300 }
+    "api/batch-results.ts": { "maxDuration": 300 },
+    "api/batch-submit.ts": { "maxDuration": 60 },
+    "api/batch-collect.ts": { "maxDuration": 300 }
   },
   "headers": [
     {

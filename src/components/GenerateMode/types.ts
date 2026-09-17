@@ -46,6 +46,10 @@ export interface ProductSettings {
 
 export interface VisionApiResponse {
   content: string;
+  /** Model that served the request, as reported by the API. */
+  model?: string;
+  /** end_turn, max_tokens, refusal, ... */
+  stopReason?: string | null;
   tokens: {
     inputTokens: number;
     outputTokens: number;
@@ -54,6 +58,8 @@ export interface VisionApiResponse {
     /** Tokens served from prompt cache on this request (~0.1x base cost). */
     cacheReadTokens?: number;
   };
+  /** List-price cost of this call in USD, cache rates included. */
+  costUsd?: number;
 }
 
 /**
@@ -135,10 +141,9 @@ export enum MetadataGenerationStep {
   RESULT = 'result',
 }
 
-// Hardcoded model for the metadata generation flow.
-// Claude Opus 5 — most capable Anthropic model, adaptive thinking on by
-// default in this flow, no temperature/top_p/top_k allowed.
-export const METADATA_GENERATION_MODEL = 'claude-opus-5';
+// Model shown in the metadata generation UI. The per-route models and efforts
+// (EN master vs localisations) live in ../generationConfig.ts.
+export { EN_MASTER_MODEL as METADATA_GENERATION_MODEL } from './generationConfig';
 
 export type MetadataFormatType =
   | 'aw26-compact'
@@ -180,6 +185,10 @@ export interface GeneratedProduct {
   enMaster?: string;
   translations: Record<string, string>;
   errors?: string[];
+  /** Style-guard findings (non-blocking): greeting opener, banned word, structure, ... */
+  warnings?: string[];
+  /** List-price cost of this product's calls in USD. */
+  costUsd?: number;
 }
 
 export interface GenerationProgress {
