@@ -6,8 +6,9 @@
 // Kept in sync by hand with src/lib/prompts/rules/* — this file runs as a
 // Vercel function and cannot resolve the `@/` alias.
 
-export function wiringAndPaddingCompact(): string {
 import { longDescColumnFor } from './longDescColumns';
+
+export function wiringAndPaddingCompact(): string {
   return `WIRING & PADDING (FOR BRA PRODUCTS):
 - When wiring/padding info is provided, include as FIRST bullet point
 - Format: "[Wiring], [padding] bra for [benefit]"

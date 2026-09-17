@@ -7,11 +7,11 @@
  * maxDuration: 60s
  */
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { longDescColumnFor } from './_lib/longDescColumns';
 import Anthropic from '@anthropic-ai/sdk';
 import { supabaseAdmin, verifyUserJwt, getUserApiKeys } from './_lib/supabaseAdmin';
 import type { RunConfig } from './_lib/types';
 import {
-import { longDescColumnFor } from './_lib/longDescColumns';
   ECOMMERCE_SYSTEM_PROMPT,
   SLOGGI_ECOMMERCE_SYSTEM_PROMPT,
   buildEcommerceUserPrompt,
@@ -66,9 +66,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Missing or empty langs array' });
     }
 
-    // 3. Get user's Anthropic API key
+    // 3. Get the Anthropic API key (user's own, else the deployment's)
     const keys = await getUserApiKeys(user.id);
-    const apiKey = keys.anthropic_key;
+    const apiKey = keys.anthropic_key || process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
       return res.status(400).json({ error: 'No Anthropic API key configured for user' });
     }
@@ -102,19 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const isSloggi = runConfig.useCase === 'sloggi-ecommerce';
     const systemPrompt = isSloggi ? SLOGGI_ECOMMERCE_SYSTEM_PROMPT : ECOMMERCE_SYSTEM_PROMPT;
 
-    const requests: Array<{
-      custom_id: string;
-      params: {
-        model: string;
-        max_tokens: number;
-        system: Array<{
-          type: 'text';
-          text: string;
-          cache_control: { type: 'ephemeral' };
-        }>;
-        messages: Array<{ role: 'user'; content: string }>;
-      };
-    }> = [];
+    const requests: Anthropic.Messages.BatchCreateParams.Request[] = [];
 
     // Sort by language first (outer loop), then by row index (inner loop)
     for (const lang of langs) {
@@ -132,12 +120,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           custom_id: `row-${rowIndex}-lang-${lang}`,
           params: {
             model: runConfig.modelId,
-            max_tokens: 2000,
+            // Thinking tokens count against max_tokens on Opus 5: 2000 cut
+            // long rows off mid-sentence, 16000 matches the live path.
+            max_tokens: 16000,
+            thinking: { type: 'adaptive' },
+            output_config: { effort: 'high' },
             system: [
               {
                 type: 'text',
                 text: systemPrompt,
-                cache_control: { type: 'ephemeral' },
+                cache_control: { type: 'ephemeral', ttl: '1h' },
               },
             ],
             messages: [{ role: 'user', content: userPrompt }],
@@ -158,7 +150,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // 6. Create the batch via Anthropic SDK
     const client = new Anthropic({ apiKey });
     const batch = await client.messages.batches.create({
-      requests: requests as any,
+      requests,
     });
 
     // 7. Store batch_id in the run record config
@@ -171,8 +163,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       batchId: batch.id,
       totalRequests: requests.length,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error('batch-create error:', err);
-    return res.status(500).json({ error: err.message || 'Internal server error' });
+    return res.status(500).json({ error: err instanceof Error ? err.message : 'Internal server error' });
   }
 }

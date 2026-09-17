@@ -4,10 +4,11 @@
  * Fully self-contained — no imports from src/ to avoid ESM/CJS conflicts
  * on Vercel. System prompts and row data come from the run config stored in DB.
  */
-import { callAI, AiResponse } from './aiClients';
+import { callAI, type AiCallOptions, type AiResponse } from './aiClients';
+import { z } from 'zod/v4';
+import { longDescColumnFor } from './longDescColumns';
 import { RunConfig } from './types';
 import {
-import { longDescColumnFor } from './longDescColumns';
   wiringAndPaddingCompact,
   seriesNameRules,
   truthfulnessRules,
@@ -16,17 +17,24 @@ import { longDescColumnFor } from './longDescColumns';
   buildEcommerceUserPrompt,
 } from './ecommercePrompts';
 
+// Structured-output schemas: the API constrains the response to these shapes,
+// so the JSON never has to be fished out of prose or code fences.
+const PARTOO_STORE_SCHEMA = z.object({ short_description: z.string(), long_description: z.string() });
+const NEXT_SCHEMA = z.object({ product_title: z.string(), copy_design_features: z.string() });
+const ABOUTYOU_SCHEMA = z.object({ style_name: z.string(), long_description: z.string() });
+
 interface ModelLike {
   id: string;
 }
 
-async function serverOptimize(
+async function serverOptimize<T = unknown>(
   userPrompt: string,
   model: ModelLike,
   apiKey: string,
-  systemPrompt: string
-): Promise<AiResponse> {
-  return callAI(apiKey, model.id, systemPrompt, userPrompt);
+  systemPrompt: string,
+  options: AiCallOptions<T> = {}
+): Promise<AiResponse<T>> {
+  return callAI(apiKey, model.id, systemPrompt, userPrompt, options);
 }
 
 // ---------------------------------------------------------------------------
@@ -201,7 +209,7 @@ function buildPartooStorePrompt(storeData: PartooStoreData, overwritePolicy: 'fi
   if (shortIsGeneric || longIsGeneric) {
     prompt += `\n\n⚠️ IMPORTANT: Previous description was GENERIC corporate text (company history, global stats).\nWrite COMPLETELY NEW content using ONLY the store details above.\nDO NOT reference or copy any corporate history, founding dates, global statistics, or brand background.`;
   }
-  prompt += `\n\nReturn JSON ONLY (no other text):\n\n{\n  "short_description": "<max 80 characters, plain text>",\n  "long_description": "<max 750 characters, plain text>"\n}\n\nCRITICAL REQUIREMENTS:\n- Write in ${language}. Do not use any other language.\n- ALWAYS mention ${storeData.city} naturally in both descriptions.\n- ${storeData.address ? `Mention ${storeData.address} if it fits naturally.` : 'Address not provided - do not invent one.'}\n- Short description: max 80 characters. Long description: AIM for 600-750 characters — use the full budget for a rich, informative text.\n- Count characters BEFORE responding and ensure both fields are within limits.\n- Use ONLY information from Inputs above. Do not invent details.\n- Focus on: expert bra fitting, lingerie for everyday comfort, coordinated sets.\n- Write naturally to answer local search intents (e.g. "lingerie store in ${storeData.city}", "Triumph near me"). Describe the in-store experience.\n- NO company history, global stats, corporate background, certifications, or mission statements.\n- NO prices, hours, phone, email, directions, promotions, or loyalty programs.\n- Plain text only - no HTML, markdown, links, emojis.`;
+  prompt += `\n\nWrite two fields: short_description (plain text, at most 80 characters) and long_description (plain text, 600 to 750 characters; use the full budget for a rich, informative text).\n\nRequirements:\n- Write in ${language}. Do not use any other language.\n- Mention ${storeData.city} naturally in both descriptions.\n- ${storeData.address ? `Mention ${storeData.address} if it fits naturally.` : 'Address not provided - do not invent one.'}\n- Use only information from Inputs above. Do not invent details.\n- Focus on: expert bra fitting, lingerie for everyday comfort, coordinated sets.\n- Write naturally to answer local search intents (e.g. "lingerie store in ${storeData.city}", "Triumph near me"). Describe the in-store experience.\n- No company history, global stats, corporate background, certifications, or mission statements.\n- No prices, hours, phone, email, directions, promotions, or loyalty programs.\n- Plain text only: no HTML, markdown, links, emojis.`;
   return prompt;
 }
 
@@ -238,7 +246,7 @@ function buildPartooAboutPrompt(storeData: PartooStoreData, overwritePolicy: 'fi
   if (storeData.isOutlet) prompt += `\n- Outlet store: yes`;
   const aboutIsGeneric = overwritePolicy === 'fill-improve' && isGenericDescription(storeData.existingAbout, storeData.city);
   if (storeData.existingAbout && !aboutIsGeneric) prompt += `\n- Existing About (for reference): ${storeData.existingAbout}`;
-  prompt += `\n\nTASK: Write an "About" text for this store's page on the Triumph store locator website.\nThis text appears on the individual store page and should help local SEO and AI-powered local search results.\n\nCRITICAL REQUIREMENTS:\n- Write in ${language}. Do not use any other language.\n- Maximum 500 characters.\n- ALWAYS mention ${storeData.city} naturally.\n- Light Markdown is allowed: **bold** for emphasis, bullet lists with - for services.\n- Make the text UNIQUE to this specific location using the details provided.\n- Focus on: why visit this store, what services are available, what makes it special locally.\n- This is NOT a product description — it is a presentation of the physical store location.\n- NO company history, global stats, founding dates, corporate background.\n- NO prices, opening hours, phone, email, directions, promotions, loyalty programs.\n- NO HTML, emojis, links, or headings (#).\n\nReturn ONLY the About text (plain Markdown string, NOT JSON). No extra commentary.`;
+  prompt += `\n\nTASK: Write an "About" text for this store's page on the Triumph store locator website.\nThis text appears on the individual store page and should help local SEO and AI-powered local search results.\n\nRequirements:\n- Write in ${language}. Do not use any other language.\n- Maximum 500 characters.\n- Mention ${storeData.city} naturally.\n- Light Markdown is allowed: **bold** for emphasis, bullet lists with - for services.\n- Make the text UNIQUE to this specific location using the details provided.\n- Focus on: why visit this store, what services are available, what makes it special locally.\n- This is NOT a product description — it is a presentation of the physical store location.\n- NO company history, global stats, founding dates, corporate background.\n- NO prices, opening hours, phone, email, directions, promotions, loyalty programs.\n- NO HTML, emojis, links, or headings (#).\n\nReturn ONLY the About text (plain Markdown string, NOT JSON). No extra commentary.`;
   return prompt;
 }
 
@@ -285,7 +293,7 @@ BRAND VALUES & PERSONALITY:
 
 CONTENT SCOPE:
 - Describe ONLY the specific store and its local context
-- ALWAYS mention the CITY naturally
+- Mention the CITY naturally
 - Mention the ADDRESS only if it is provided in Inputs
 - Highlight EXPERT BRA FITTING as a key service
 - Focus on LINGERIE FOR EVERYDAY COMFORT
@@ -347,7 +355,7 @@ TONE OF VOICE (Triumph Brand):
 
 CONTENT SCOPE:
 - Present THIS SPECIFIC STORE LOCATION — not the Triumph brand globally
-- ALWAYS mention the CITY naturally for local SEO
+- Mention the CITY naturally for local SEO
 - Highlight available services (fitting, booking, outlet) when provided
 - Differentiate between official Triumph stores and authorized retailers
 - Focus on: why someone nearby should visit, what they will find, what services are available
@@ -388,6 +396,7 @@ async function processPartooRow(
   const processed = { ...row } as any;
   let totalIn = 0;
   let totalOut = 0;
+  let totalCost = 0;
 
   const mapping = config.mappings?.mapping as Record<string, string> || config.mappings as Record<string, string> || {};
   const overwritePolicy = (config as any).overwritePolicy || 'fill-improve';
@@ -536,11 +545,14 @@ async function processPartooRow(
   // Short + Long description generation
   if (needsShort || needsLong) {
     const userPrompt = buildPartooStorePrompt(storeData, overwritePolicy);
-    const res = await serverOptimize(userPrompt, model, apiKey, PARTOO_SYSTEM_PROMPT);
+    const res = await serverOptimize(userPrompt, model, apiKey, PARTOO_SYSTEM_PROMPT, { outputSchema: PARTOO_STORE_SCHEMA });
     totalIn += res.tokens.inputTokens;
     totalOut += res.tokens.outputTokens;
+    totalCost += res.costUsd ?? 0;
 
-    const parsed = parsePartooResponse(res.content);
+    const parsed = res.parsed
+      ? { short: res.parsed.short_description.trim(), long: res.parsed.long_description.trim() }
+      : parsePartooResponse(res.content);
     if (parsed) {
       if (needsShort) processed[shortDescKey] = stripMarkdown(parsed.short);
       if (needsLong) processed[longDescKey] = stripMarkdown(parsed.long);
@@ -556,6 +568,7 @@ async function processPartooRow(
     const aboutRes = await serverOptimize(aboutPrompt, model, apiKey, PARTOO_ABOUT_SYSTEM_PROMPT);
     totalIn += aboutRes.tokens.inputTokens;
     totalOut += aboutRes.tokens.outputTokens;
+    totalCost += aboutRes.costUsd ?? 0;
 
     const parsedAbout = parsePartooAboutResponse(aboutRes.content);
     if (parsedAbout) {
@@ -572,7 +585,7 @@ async function processPartooRow(
   // Set label for activity log (use Business identification or store name)
   processed._label = businessId || name || city || `Row ${rowIndex + 1}`;
 
-  return { result: processed, cost: 0, tokensIn: totalIn, tokensOut: totalOut };
+  return { result: processed, cost: totalCost, tokensIn: totalIn, tokensOut: totalOut };
 }
 
 // ===========================================================================
@@ -836,6 +849,7 @@ async function processAmazonRow(
   const mapping = config.mappings?.mapping as Record<string, any> || config.mappings as Record<string, any> || {};
   let totalIn = 0;
   let totalOut = 0;
+  let totalCost = 0;
 
   const idKey = mapping.productId || 'vendor_sku#1.value';
   const titleKey = mapping.title || 'item_name#1.value';
@@ -874,6 +888,7 @@ FORMAT:
   const bulletsRes = await serverOptimize(bulletsPrompt, model, apiKey, AMAZON_SYSTEM_PROMPT);
   totalIn += bulletsRes.tokens.inputTokens;
   totalOut += bulletsRes.tokens.outputTokens;
+  totalCost += bulletsRes.costUsd ?? 0;
   const bullets = sanitizeBulletsOutputToArray(bulletsRes.content || '');
   processed['gen_bullet_1'] = bullets[0] || '—';
   processed['gen_bullet_2'] = bullets[1] || '—';
@@ -903,6 +918,7 @@ FORMAT:
   const descRes = await serverOptimize(descPrompt, model, apiKey, AMAZON_SYSTEM_PROMPT);
   totalIn += descRes.tokens.inputTokens;
   totalOut += descRes.tokens.outputTokens;
+  totalCost += descRes.costUsd ?? 0;
   const genDescription = sanitizeDescription(descRes.content || '');
   processed['gen_description'] = genDescription;
 
@@ -927,6 +943,7 @@ FORMAT:
   const aplusRes = await serverOptimize(aplusPrompt, model, apiKey, AMAZON_SYSTEM_PROMPT);
   totalIn += aplusRes.tokens.inputTokens;
   totalOut += aplusRes.tokens.outputTokens;
+  totalCost += aplusRes.costUsd ?? 0;
   processed['gen_aplus_short'] = sanitizeAplusShort(aplusRes.content || '');
 
   // Policy guard
@@ -937,7 +954,7 @@ FORMAT:
 
   processed._optimizedFields = ['Bullets', 'Description', 'A+ Short'];
   processed._label = String(row[idKey] ?? '').trim() || String(row[titleKey] ?? '').trim() || `Row ${rowIndex + 1}`;
-  return { result: processed, cost: 0, tokensIn: totalIn, tokensOut: totalOut };
+  return { result: processed, cost: totalCost, tokensIn: totalIn, tokensOut: totalOut };
 }
 
 // ===========================================================================
@@ -1007,8 +1024,7 @@ function buildNextPrompt(data: {
     '- Copy Design Features: max 1000 chars, detailed, benefit-led, British English.',
     '- Include lingerie attributes naturally if provided.',
     '- Use ONLY information from the Product Data above.', '',
-    'Return ONLY valid JSON:',
-    '{"product_title":"<max 100 chars>","copy_design_features":"<max 1000 chars>"}');
+    'Fields: product_title (max 100 characters), copy_design_features (max 1000 characters).');
   return lines.join('\n');
 }
 
@@ -1033,6 +1049,7 @@ async function processNextRow(
   const processed = { ...row } as any;
   let totalIn = 0;
   let totalOut = 0;
+  let totalCost = 0;
   const mapping = config.mappings?.mapping as Record<string, string> || config.mappings as Record<string, string> || {};
   const colorMappings = (config as any).colorMappings || COLOR_TRANSLATIONS;
 
@@ -1095,11 +1112,17 @@ async function processNextRow(
     wiring: String(row[wiringKey] ?? '').trim() || undefined,
   });
 
-  const res = await serverOptimize(userPrompt, model, apiKey, NEXT_SYSTEM_PROMPT);
+  const res = await serverOptimize(userPrompt, model, apiKey, NEXT_SYSTEM_PROMPT, { outputSchema: NEXT_SCHEMA });
   totalIn += res.tokens.inputTokens;
   totalOut += res.tokens.outputTokens;
+  totalCost += res.costUsd ?? 0;
 
-  const parsed = parseNextResponse(res.content);
+  const parsed = res.parsed
+    ? {
+        productTitle: res.parsed.product_title.trim().slice(0, 100),
+        copyDesignFeatures: res.parsed.copy_design_features.trim().slice(0, 1000),
+      }
+    : parseNextResponse(res.content);
   const fields: string[] = [];
   if (parsed) {
     processed[productTitleKey] = sanitizeStripMarkdown(parsed.productTitle).slice(0, 100);
@@ -1113,7 +1136,7 @@ async function processNextRow(
   processed._optimizedFields = fields;
   processed._label = supplierCode || styleNo || `Row ${rowIndex + 1}`;
 
-  return { result: processed, cost: 0, tokensIn: totalIn, tokensOut: totalOut };
+  return { result: processed, cost: totalCost, tokensIn: totalIn, tokensOut: totalOut };
 }
 
 // ===========================================================================
@@ -1171,8 +1194,7 @@ function buildAboutYouPrompt(data: {
     '- Style Name: Create a short, catchy product name (max 80 chars) for 18-35 audience.',
     '- Long Description: Write engaging description (max 500 chars) highlighting fit, feel, style.',
     '- Use ONLY information from the Product Data above.', '',
-    'Return ONLY valid JSON:',
-    '{"style_name":"<max 80 chars>","long_description":"<max 500 chars>"}');
+    'Fields: style_name (max 80 characters), long_description (max 500 characters).');
   return lines.join('\n');
 }
 
@@ -1197,6 +1219,7 @@ async function processAboutYouRow(
   const processed = { ...row } as any;
   let totalIn = 0;
   let totalOut = 0;
+  let totalCost = 0;
   const mapping = config.mappings?.mapping as Record<string, string> || config.mappings as Record<string, string> || {};
   const colorMappings = (config as any).colorMappings || COLOR_TRANSLATIONS;
 
@@ -1239,11 +1262,17 @@ async function processAboutYouRow(
     existingLongDescription: String(row[longDescKey] ?? '').trim() || undefined,
   });
 
-  const res = await serverOptimize(userPrompt, model, apiKey, ABOUTYOU_SYSTEM_PROMPT);
+  const res = await serverOptimize(userPrompt, model, apiKey, ABOUTYOU_SYSTEM_PROMPT, { outputSchema: ABOUTYOU_SCHEMA });
   totalIn += res.tokens.inputTokens;
   totalOut += res.tokens.outputTokens;
+  totalCost += res.costUsd ?? 0;
 
-  const parsed = parseAboutYouResponse(res.content);
+  const parsed = res.parsed
+    ? {
+        styleName: res.parsed.style_name.trim().slice(0, 80),
+        longDescription: res.parsed.long_description.trim().slice(0, 500),
+      }
+    : parseAboutYouResponse(res.content);
   const fields: string[] = [];
   if (parsed) {
     processed[styleWordingKey] = sanitizeStripMarkdown(parsed.styleName).slice(0, 80);
@@ -1256,7 +1285,7 @@ async function processAboutYouRow(
   processed._optimizedFields = fields;
   processed._label = styleNo || styleName || `Row ${rowIndex + 1}`;
 
-  return { result: processed, cost: 0, tokensIn: totalIn, tokensOut: totalOut };
+  return { result: processed, cost: totalCost, tokensIn: totalIn, tokensOut: totalOut };
 }
 
 // ===========================================================================
@@ -1274,6 +1303,7 @@ async function processEcommerceRow(
   const processed = { ...row } as any;
   let totalIn = 0;
   let totalOut = 0;
+  let totalCost = 0;
   const language = config.lang || 'en';
 
   const descKey = longDescColumnFor(row, language);
@@ -1319,6 +1349,7 @@ async function processEcommerceRow(
   const res = await serverOptimize(prompt, model, apiKey, systemPrompt);
   totalIn += res.tokens.inputTokens;
   totalOut += res.tokens.outputTokens;
+  totalCost += res.costUsd ?? 0;
 
   let gen = (res.content || '').trim();
   gen = gen.replace(/https?:\/\/\S+/gi, '').replace(/[\w.+-]+@[\w-]+\.[\w.-]+/gi, '').replace(/\b(?:EUR|USD|CHF|GBP)?\s?\d+[\.,]?\d*\b/gi, '').replace(/\s{2,}/g, ' ').trim();
@@ -1327,7 +1358,7 @@ async function processEcommerceRow(
   processed._optimizedFields = ['Description'];
   processed._label = String(row['MaterialSAPMaterialNo'] ?? row['ColorSAPMaterialNo'] ?? row['ProductID'] ?? row['ID'] ?? '').trim() || `Row ${rowIndex + 1}`;
 
-  return { result: processed, cost: 0, tokensIn: totalIn, tokensOut: totalOut };
+  return { result: processed, cost: totalCost, tokensIn: totalIn, tokensOut: totalOut };
 }
 
 // ---------------------------------------------------------------------------
@@ -1343,6 +1374,7 @@ async function processGenericRow(
   const processed = { ...row } as any;
   let totalIn = 0;
   let totalOut = 0;
+  let totalCost = 0;
 
   const columns = config.selectedColumns || [];
   const systemPrompt = 'You are a professional copywriter specializing in e-commerce product descriptions. Optimize the given text for clarity and engagement.';
@@ -1355,8 +1387,9 @@ async function processGenericRow(
     const res = await serverOptimize(userPrompt, model, apiKey, systemPrompt);
     totalIn += res.tokens.inputTokens;
     totalOut += res.tokens.outputTokens;
+    totalCost += res.costUsd ?? 0;
     processed[column] = res.content;
   }
 
-  return { result: processed, cost: 0, tokensIn: totalIn, tokensOut: totalOut };
+  return { result: processed, cost: totalCost, tokensIn: totalIn, tokensOut: totalOut };
 }
