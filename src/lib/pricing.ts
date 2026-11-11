@@ -3,10 +3,11 @@
  * arithmetic every flow shares.
  *
  * Source: platform.claude.com/docs/en/about-claude/pricing, checked
- * 2026-09-17. Cache writes cost 1.25x the input price on the 5-minute TTL and
- * 2x on the 1-hour TTL; cache reads cost 0.1x the input price (Claude Fable
- * 5.1 reads at 0.25 USD/MTok, half of Opus 5's rate). The Batches API takes
- * 50% off every token type.
+ * 2026-09-17; Claude Fable 5.2 added 2026-11-11. Cache writes cost 1.25x the
+ * input price on the 5-minute TTL and 2x on the 1-hour TTL; cache reads cost
+ * 0.1x the input price on the Opus, Sonnet and Haiku rows and 0.025x on the
+ * Fable rows (0.20 USD/MTok on Claude Fable 5.2, against 0.50 on Opus 5). The
+ * Batches API takes 50% off every token type.
  *
  * api/_lib/pricing.ts is a copy for the server functions (Vercel compiles only
  * files under api/); src/lib/pricing.sync.test.ts keeps the two equal.
@@ -26,6 +27,7 @@ export interface ModelPricing {
 }
 
 export const MODEL_PRICING: Record<string, ModelPricing> = {
+  'claude-fable-5-2': { input: 8, output: 40, cacheRead: 0.2, cacheWrite5m: 10, cacheWrite1h: 16 },
   'claude-opus-5': { input: 5, output: 25, cacheRead: 0.5, cacheWrite5m: 6.25, cacheWrite1h: 10 },
   'claude-fable-5-1': { input: 10, output: 50, cacheRead: 0.25, cacheWrite5m: 12.5, cacheWrite1h: 20 },
   'claude-opus-4-8': { input: 5, output: 25, cacheRead: 0.5, cacheWrite5m: 6.25, cacheWrite1h: 10 },
@@ -132,7 +134,8 @@ export function formatUsd(usd: number): string {
 /**
  * Average output tokens per generated description, thinking included,
  * measured on the sloggi CH60 batch (2026-09-02, Opus 5 at high effort).
- * Used only for pre-run estimates.
+ * Used only for pre-run estimates. Not re-measured on Claude Fable 5.2, whose
+ * thinking volume per effort level differs: refresh after the first real run.
  */
 export const OBSERVED_OUTPUT_TOKENS = {
   /** EN master or EN rewrite at high effort. */
