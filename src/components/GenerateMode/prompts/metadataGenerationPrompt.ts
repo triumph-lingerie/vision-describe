@@ -2,7 +2,8 @@
 // (Material Description, Short description, Series USP, Style USP, Style Description)
 // for brand-new SKUs that have no existing master copy.
 //
-// Written for Claude Opus 5 with adaptive thinking: the prompts state each
+// Written for Claude Opus 5 with adaptive thinking and run unchanged on
+// Claude Fable 5.2 since 2026-11-11: the prompts state each
 // rule once, in positive form, and leave the verification to the model's own
 // reasoning plus the code-side checks in ../utils/styleGuard.ts. The prompt
 // mixes XML structure, brand TOV (from sloggiBrandExpressions /

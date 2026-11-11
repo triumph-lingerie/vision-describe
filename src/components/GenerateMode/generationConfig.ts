@@ -1,7 +1,8 @@
 /**
  * Model and effort per route for the Generate flows.
  *
- * One place to change so an A/B such as "EN master on Claude Fable 5.1,
+ * Every route runs on Claude Fable 5.2 since 2026-11-11 (Claude Opus 5 until
+ * then). One place to change so an A/B such as "EN master on Claude Fable 5.2,
  * localisations on Claude Opus 5" is a one-line edit. Prices for every model
  * listed here live in src/lib/pricing.ts.
  *
@@ -16,11 +17,11 @@
 export type Effort = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 
 /** EN master generation and EN rewrite (the creative step). */
-export const EN_MASTER_MODEL = 'claude-opus-5';
+export const EN_MASTER_MODEL = 'claude-fable-5-2';
 export const EN_MASTER_EFFORT: Effort = 'high';
 
 /** Localisation of the EN master into each target locale. */
-export const LOCALISATION_MODEL = 'claude-opus-5';
+export const LOCALISATION_MODEL = 'claude-fable-5-2';
 export const LOCALISATION_EFFORT: Effort = 'medium';
 
 /** CSV translation flow (existing copy translated cell by cell). */
@@ -30,7 +31,8 @@ export const CSV_TRANSLATION_EFFORT: Effort = 'high';
 export const IMAGE_ANALYSIS_EFFORT: Effort = 'high';
 
 /**
- * Output ceiling per call. Thinking tokens count against it on Opus 5, so a
+ * Output ceiling per call. Thinking is always on and its tokens count
+ * against the ceiling, so a
  * 2000-token ceiling can cut a description off mid-sentence; 16000 leaves
  * room for the reasoning plus a 300-word HTML description.
  */

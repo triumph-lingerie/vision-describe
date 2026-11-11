@@ -1,12 +1,12 @@
 /**
  * Claude API integration for Optimize mode (client-side, official SDK).
  *
- * Claude Opus 5 configuration:
- * - Adaptive thinking at high effort (quality-sensitive copy)
+ * Claude Fable 5.2 configuration:
+ * - Adaptive thinking (always on) at high effort (quality-sensitive copy)
  * - Prompt caching on the system block
  * - The SDK retries 429s and 5xx with backoff; a wall-clock timeout guards
- *   against a call that never returns (adaptive thinking can take ~120s on
- *   complex rows)
+ *   against a call that never returns. Turns at high effort run longer than
+ *   on Opus 5, hence 300s where Opus 5 had 120s
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { claudeSystemPrompt } from './prompts/systemPrompt';
@@ -32,7 +32,7 @@ export interface ClaudeRequestOptions {
   effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 }
 
-const DEFAULT_MODEL = 'claude-opus-5';
+const DEFAULT_MODEL = 'claude-fable-5-2';
 
 /**
  * Optimizes text using the Anthropic Claude API via the official SDK.
@@ -65,7 +65,7 @@ export const optimizeWithClaude = async (
 
     const claudeModel = model || DEFAULT_MODEL;
     const finalSystemPrompt = systemPrompt || claudeSystemPrompt;
-    const timeoutMs = Math.max(0, options.timeoutMs ?? 120000);
+    const timeoutMs = Math.max(0, options.timeoutMs ?? 300000);
 
     const client = new Anthropic({
       apiKey,

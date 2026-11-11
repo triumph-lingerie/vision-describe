@@ -7,7 +7,7 @@
  * calls runs longer than the default 5 minutes.
  *
  * Model and effort per route live in ../generationConfig.ts. Sampling
- * parameters (temperature, top_p, top_k) are not sent: Opus 5 rejects them.
+ * parameters (temperature, top_p, top_k) are not sent: the API rejects them.
  */
 import Anthropic from '@anthropic-ai/sdk';
 import type { VisionApiResponse, ImageFile, CachedPromptInput } from '../types';
@@ -47,7 +47,7 @@ function browserClient(apiKey: string): Anthropic {
 /**
  * Turn a response with no usable text into an error that says why.
  *
- * Opus 5 can end a turn with stop_reason 'refusal' (HTTP 200, a stop_details
+ * The model can end a turn with stop_reason 'refusal' (HTTP 200, a stop_details
  * category, and no text block). Without this, a declined SKU surfaced as the
  * generic "No valid text content" and looked like a parsing bug, easy to miss
  * in a batch of several hundred calls. 'max_tokens' gets the same treatment,

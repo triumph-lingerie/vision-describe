@@ -50,8 +50,8 @@ import { isLongDescriptionColumn } from '@/lib/longDescriptionColumns';
 // ─── Step Definitions ─────────────────────────────────────────────────────────
 
 // Hardcoded model for the Optimize flow.
-// Claude Opus 5 — most capable Anthropic model. No user selector exposed.
-const OPTIMIZE_MODEL = 'claude-opus-5';
+// Claude Fable 5.2 — most capable Anthropic model. No user selector exposed.
+const OPTIMIZE_MODEL = 'claude-fable-5-2';
 
 const getStepsForUseCase = (useCase: UseCase | ''): StepDef<ProcessingStep>[] => {
   switch (useCase) {

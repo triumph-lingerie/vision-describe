@@ -54,6 +54,13 @@ describe('pricing', () => {
   it('falls back to the base model price for dated aliases and unknown ids', () => {
     expect(pricingFor('claude-opus-5-20260401')).toEqual(pricingFor('claude-opus-5'));
     expect(pricingFor('claude-fable-5-1').input).toBe(10);
+    expect(pricingFor('claude-fable-5-2')).toEqual({
+      input: 8,
+      output: 40,
+      cacheRead: 0.2,
+      cacheWrite5m: 10,
+      cacheWrite1h: 16,
+    });
     expect(pricingFor('something-else')).toEqual(pricingFor('claude-opus-5'));
   });
 

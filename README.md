@@ -1,6 +1,6 @@
 # VisionDescribe
 
-AI-powered content generation for e-commerce and marketplace platforms. Uses Claude Opus 5 with adaptive thinking to generate brand-compliant product descriptions, bullet points and optimised copy, with per-run cost tracking and multi-language support.
+AI-powered content generation for e-commerce and marketplace platforms. Uses Claude Fable 5.2 with adaptive thinking to generate brand-compliant product descriptions, bullet points and optimised copy, with per-run cost tracking and multi-language support.
 
 Built with React, TypeScript, Vercel serverless functions and Supabase.
 
@@ -22,17 +22,19 @@ Built with React, TypeScript, Vercel serverless functions and Supabase.
 
 ## AI model and effort
 
-Every flow runs on Claude Opus 5 with adaptive thinking. Effort is set per route in `src/components/GenerateMode/generationConfig.ts`:
+Every flow runs on Claude Fable 5.2 (Claude Opus 5 until 2026-11-11) with adaptive thinking, which is always on for this model. Effort is set per route in `src/components/GenerateMode/generationConfig.ts`:
 
 | Route | Model | Effort | Why |
 |-------|-------|--------|-----|
-| EN master generation / EN rewrite | `claude-opus-5` | high | The creative step; it carries the terminology contract |
-| Localisation of the EN master | `claude-opus-5` | medium | Starts from a finished text; medium trims the thinking tokens that make up about half of the output cost |
-| Optimize, CSV translation, image analysis | `claude-opus-5` | high | |
+| EN master generation / EN rewrite | `claude-fable-5-2` | high | The creative step; it carries the terminology contract |
+| Localisation of the EN master | `claude-fable-5-2` | medium | Starts from a finished text; medium trims the thinking tokens that make up about half of the output cost |
+| Optimize, CSV translation, image analysis | `claude-fable-5-2` | high | |
 
-Changing a route to another model (for example Claude Fable 5.1 for the EN master) is a one-line edit in that file; prices for every candidate live in `src/lib/pricing.ts`. Validate any change on a handful of SKUs with the market proofreaders first.
+Changing a route to another model (for example Claude Opus 5 for the localisations) is a one-line edit in that file; prices for every candidate live in `src/lib/pricing.ts`. Validate any change on a handful of SKUs with the market proofreaders first.
 
-Sampling parameters (temperature, top_p, top_k) are never sent: Opus 5 rejects them. The stable instruction block of every prompt is sent as a cached system prefix (1-hour TTL on the metadata flows), so on a batch every call after the first reads it from the cache.
+Claude Fable 5.2 lists at 8 / 40 USD per million input / output tokens against 5 / 25 on Claude Opus 5 (cache reads 0.20 against 0.50), so a run costs up to 1.6 times what it did. It needs 30-day data retention on the Anthropic organization: under zero data retention every request returns a 400. Efforts and the pre-run output-token averages were tuned on Opus 5 and have not been re-measured.
+
+Sampling parameters (temperature, top_p, top_k) are never sent: the API rejects them. The stable instruction block of every prompt is sent as a cached system prefix (1-hour TTL on the metadata flows), so on a batch every call after the first reads it from the cache.
 
 ## Metadata Generation: live vs batch
 

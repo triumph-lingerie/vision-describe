@@ -120,7 +120,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           custom_id: `row-${rowIndex}-lang-${lang}`,
           params: {
             model: runConfig.modelId,
-            // Thinking tokens count against max_tokens on Opus 5: 2000 cut
+            // Thinking tokens count against max_tokens: 2000 cut
             // long rows off mid-sentence, 16000 matches the live path.
             max_tokens: 16000,
             thinking: { type: 'adaptive' },
